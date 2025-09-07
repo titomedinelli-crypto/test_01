@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elementia: ศึกประลองธาตุเอเลี่ยน</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --primary-color: #ffffff;
+            --secondary-color: #e9ecef;
+            --accent-color: #007bff;
+            --border-color: #dee2e6;
+            --text-color: #212529;
+            --text-light-color: #6c757d;
+            --correct-color: #28a745;
+            --wrong-color: #dc3545;
+            
+            /* --- Element Category Colors --- */
+            --color-alkali-metal: #ffadad;
+            --color-alkaline-earth: #ffd6a5;
+            --color-lanthanide: #fdffb6;
+            --color-actinide: #caffbf;
+            --color-transition-metal: #9bf6ff;
+            --color-metal: #a0c4ff;
+            --color-metalloid: #bdb2ff;
+            --color-nonmetal: #ffc6ff;
+            --color-halogen: #fffffc;
+            --color-noble-gas: #e4e1e1;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'IBM Plex Sans Thai', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            width: 95%;
+            max-width: 1400px;
+            height: 95vh;
+            max-height: 900px;
+            background-color: var(--primary-color);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative; /* For tooltip positioning */
+        }
+
+        .screen {
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .screen.active { display: flex; }
+        
+        h1 { font-size: 2.5rem; color: var(--text-color); margin-bottom: 10px; }
+        h2 { font-size: 1.2rem; color: var(--text-light-color); margin-bottom: 20px; }
+
+        /* --- Main Menu & Difficulty Screens --- */
+        #main-menu-screen, #difficulty-screen { gap: 15px; }
+        .menu-btn {
+            padding: 20px 40px;
+            font-size: 1.3rem;
+            width: 80%;
+            max-width: 400px;
+            font-weight: bold;
+            background-color: var(--primary-color);
+            color: var(--accent-color);
+            border: 2px solid var(--accent-color);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .menu-btn:hover {
+            background-color: var(--accent-color);
+            color: white;
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 123, 255, 0.3);
+        }
+
+        /* --- Customization Screen --- */
+        #customization-screen p { margin-bottom: 15px; color: var(--text-light-color); }
+        .element-selector-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 10px;
+            width: 100%;
+            max-height: 60%;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
+        }
+        .element-choice {
+            background-color: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            font-weight: bold;
+        }
+        .element-choice:hover { transform: translateY(-3px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .element-choice.selected { background-color: var(--accent-color); color: white; border-color: var(--accent-color); }
+        .element-choice .symbol { font-size: 1.4rem; }
+        .element-choice .number { font-size: 0.8rem; opacity: 0.7; }
+        .start-button {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+        }
+        .start-button:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 123, 255, 0.4); }
+        .start-button:disabled { background-color: #aaa; cursor: not-allowed; box-shadow: none; transform: none; }
+
+        /* --- Game Screen --- */
+        #game-screen { justify-content: flex-start; }
+        .game-ui {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
+            margin-bottom: 5px;
+            flex-shrink: 0;
+        }
+        .ui-box { font-size: 1.8rem; font-weight: bold; text-align: center; }
+        #lives-display { display: flex; gap: 10px; align-items: center; }
+        .life-icon-svg {
+            width: 30px;
+            height: 30px;
+            transition: all 0.3s ease;
+        }
+        .life-icon-svg path {
+            fill: white;
+            stroke: var(--text-color);
+            stroke-width: 1.5;
+        }
+        .life-icon-svg.lost {
+            transform: scale(0.8);
+        }
+        .life-icon-svg.lost path {
+            fill: var(--secondary-color);
+            stroke: var(--border-color);
+        }
+        #sound-toggle {
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+        }
+        #sound-toggle .line {
+            stroke: var(--wrong-color);
+            stroke-width: 2;
+            display: none;
+        }
+        #sound-toggle.muted .line {
+            display: block;
+        }
+
+        .game-area { width: 100%; flex-grow: 1; display: flex; flex-direction: column; }
+        
+        /* Game Mode 1: Click to Place */
+        #drag-to-atom-container { height: 100%; width: 100%; display: flex; flex-direction: column; align-items: center; }
+        #question-display-box {
+            width: 100%;
+            min-height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .question-card {
+            width: 110px;
+            height: 110px;
+            background-color: #fff;
+            border: 3px solid var(--text-color);
+            border-radius: 15px;
+            user-select: none;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .question-card .symbol { font-size: 2.5rem; font-weight: bold; }
+        .question-card .name { font-size: 0.8rem; color: var(--text-light-color); }
+
+        #game-grid {
+            display: grid;
+            grid-template-columns: repeat(18, minmax(0, 1fr));
+            grid-template-rows: repeat(10, minmax(0, 1fr));
+            gap: 4px;
+            width: 100%;
+            flex-grow: 1;
+            padding: 5px;
+        }
+        .grid-slot {
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: clamp(0.6rem, 1.2vw, 1rem);
+            font-weight: bold;
+            transition: all 0.2s ease;
+            position: relative;
+            aspect-ratio: 1 / 1;
+            grid-column-start: var(--col);
+            grid-row-start: var(--row);
+            cursor: pointer;
+        }
+        .grid-slot:not([class*="category-"]) {
+            background-color: var(--secondary-color);
+        }
+        .grid-slot:hover {
+            border-color: var(--accent-color);
+            transform: scale(1.05);
+            z-index: 10;
+        }
+        .grid-slot.correct { 
+            border-style: solid;
+            border-color: var(--correct-color);
+            background-color: var(--correct-color);
+            color: white;
+            animation: pulse-correct 0.5s;
+            cursor: default;
+        }
+        .grid-slot.correct .element-symbol { font-size: clamp(0.8rem, 1.5vw, 1.2rem); }
+        .grid-slot.correct .element-name { font-size: clamp(0.4rem, 0.8vw, 0.5rem); font-weight: normal; }
+        .placeholder-slot { background-color: #fff; border: 2px dashed; font-size: 0.8em; color: var(--text-light-color); cursor: default; }
+        .placeholder-slot:hover { transform: none; }
+        .placeholder-lanthanide { border-color: var(--lanthanide-color); }
+        .placeholder-actinide { border-color: var(--actinide-color); }
+
+        /* Color classes */
+        .category-alkali-metal { background-color: var(--color-alkali-metal); }
+        .category-alkaline-earth { background-color: var(--color-alkaline-earth); }
+        .category-lanthanide { background-color: var(--color-lanthanide); }
+        .category-actinide { background-color: var(--color-actinide); }
+        .category-transition-metal { background-color: var(--color-transition-metal); }
+        .category-metal { background-color: var(--color-metal); }
+        .category-metalloid { background-color: var(--color-metalloid); }
+        .category-nonmetal { background-color: var(--color-nonmetal); }
+        .category-halogen { background-color: var(--color-halogen); }
+        .category-noble-gas { background-color: var(--color-noble-gas); }
+        
+        #color-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+            justify-content: center;
+            padding: 5px;
+            width: 100%;
+            margin-top: 5px;
+            flex-shrink: 0;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.7rem;
+        }
+        .legend-color-box {
+            width: 12px;
+            height: 12px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+
+        /* Game Mode 2 & 3: Multiple Choice */
+        #multiple-choice-container { height: 100%; width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; }
+        #question-area { font-size: 2rem; text-align: center; margin-bottom: 20px; }
+        #question-area .element-name { font-size: 3rem; font-weight: bold; color: var(--accent-color); }
+        #options-area { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+        .option-btn { padding: 20px; min-width: 150px; font-size: 1.5rem; font-weight: bold; background-color: #fff; border: 2px solid var(--border-color); border-radius: 10px; cursor: pointer; transition: all 0.2s ease; }
+        .option-btn:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+
+        /* Feedback & Game Over */
+        #game-over-screen { gap: 15px; }
+        #final-score { margin-bottom: 0; }
+        #score-comparison {
+            display: flex;
+            gap: 30px;
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+        #first-score { color: var(--text-light-color); }
+        #high-score { color: var(--accent-color); font-weight: bold; }
+        
+        #category-tooltip {
+            position: absolute;
+            display: none;
+            background-color: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            z-index: 1000;
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transform: translateX(-50%);
+        }
+
+        .feedback { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 5rem; font-weight: bold; opacity: 0; animation: fade-out 1s; z-index: 100; }
+        .feedback.correct { color: var(--correct-color); }
+        .feedback.wrong { color: var(--wrong-color); animation: fade-shake 1s; }
+        @keyframes fade-out { from { opacity: 1; transform: translate(-50%, -50%) scale(1); } to { opacity: 0; transform: translate(-50%, -50%) scale(1.5); } }
+        @keyframes fade-shake { 0% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 10%, 30% { transform: translate(-55%, -50%) rotate(-5deg); } 20%, 40% { transform: translate(-45%, -50%) rotate(5deg); } 50% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); } }
+        @keyframes pulse-correct { from { transform: scale(1); } 50% { transform: scale(1.05); } to { transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Screen 0: Main Menu -->
+        <div id="main-menu-screen" class="screen active">
+            <h1>Elementia</h1>
+            <h2>เลือกโหมดเกม</h2>
+            <button class="menu-btn game-select-btn" data-mode="drag_to_atom">เกมทายเลขอะตอม</button>
+            <button class="menu-btn game-select-btn" data-mode="guess_symbol">เกมทายตัวย่อธาตุ</button>
+            <button class="menu-btn game-select-btn" data-mode="guess_property">เกมทายคุณสมบัติ</button>
+        </div>
+
+        <!-- Screen 0.5: Difficulty Selection -->
+        <div id="difficulty-screen" class="screen">
+            <h1>เลือกระดับความยาก</h1>
+            <button class="menu-btn difficulty-btn" data-difficulty="easy">ง่าย</button>
+            <button class="menu-btn difficulty-btn" data-difficulty="medium">กลาง</button>
+            <button class="menu-btn difficulty-btn" data-difficulty="hard">ยาก</button>
+        </div>
+
+
+        <!-- Screen 1: Customization -->
+        <div id="customization-screen" class="screen">
+            <h1 id="customization-title">เลือกธาตุ</h1>
+            <h2>เลือกธาตุที่จะเล่น (อย่างน้อย 5 ธาตุ)</h2>
+            <p id="element-count">เลือกแล้ว 0 ธาตุ</p>
+            <div class="element-selector-grid" id="element-selector-grid"></div>
+            <button class="start-button" id="start-game-btn" disabled>เริ่มเกม</button>
+        </div>
+
+        <!-- Screen 2: Game -->
+        <div id="game-screen" class="screen">
+            <div class="game-ui">
+                <div id="lives-display" class="ui-box"></div>
+                <div id="timer-display" class="ui-box">01:30</div>
+                <div class="ui-box" style="display: flex; align-items: center; gap: 20px;">
+                    <div id="score-display" style="font-size: 1.5rem;">Score: 0</div>
+                    <svg id="sound-toggle" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.84 14,18.7V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.76 16.5,12M3,9V15H7L12,20V4L7,9H3Z" />
+                        <line class="line" x1="1" y1="1" x2="23" y2="23" />
+                    </svg>
+                </div>
+            </div>
+            <div class="game-area">
+                <!-- Container for Game 1 -->
+                <div id="drag-to-atom-container" style="display: none;">
+                    <div id="question-display-box"></div>
+                    <div id="game-grid"></div>
+                    <div id="color-legend"></div>
+                </div>
+                <!-- Container for Game 2 & 3 -->
+                <div id="multiple-choice-container" style="display: none;">
+                    <div id="question-area"></div>
+                    <div id="options-area"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen 3: Game Over -->
+        <div id="game-over-screen" class="screen">
+            <h1>จบเกม!</h1>
+            <h2 id="final-score">คะแนนของคุณ: 0</h2>
+            <div id="score-comparison">
+                <p id="first-score"></p>
+                <p id="high-score"></p>
+            </div>
+            <button class="start-button" id="play-again-btn">เล่นอีกครั้ง</button>
+        </div>
+        
+        <div id="feedback-container"></div>
+        <div id="category-tooltip"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DATA with categories ---
+            const ELEMENTS_DATA = [
+                { atomicNumber: 1, symbol: 'H', name: 'ไฮโดรเจน', category: 'นอนเมทัล' }, { atomicNumber: 2, symbol: 'He', name: 'ฮีเลียม', category: 'ก๊าซมีตระกูล' },
+                { atomicNumber: 3, symbol: 'Li', name: 'ลิเทียม', category: 'โลหะแอลคาไล' }, { atomicNumber: 4, symbol: 'Be', name: 'เบริลเลียม', category: 'โลหะแอลคาไลน์เอิร์ท' },
+                { atomicNumber: 5, symbol: 'B', name: 'โบรอน', category: 'เมทัลลอยด์' }, { atomicNumber: 6, symbol: 'C', name: 'คาร์บอน', category: 'นอนเมทัล' },
+                { atomicNumber: 7, symbol: 'N', name: 'ไนโตรเจน', category: 'นอนเมทัล' }, { atomicNumber: 8, symbol: 'O', name: 'ออกซิเจน', category: 'นอนเมทัล' },
+                { atomicNumber: 9, symbol: 'F', name: 'ฟลูออรีน', category: 'แฮโลเจน' }, { atomicNumber: 10, symbol: 'Ne', name: 'นีออน', category: 'ก๊าซมีตระกูล' },
+                { atomicNumber: 11, symbol: 'Na', name: 'โซเดียม', category: 'โลหะแอลคาไล' }, { atomicNumber: 12, symbol: 'Mg', name: 'แมกนีเซียม', category: 'โลหะแอลคาไลน์เอิร์ท' },
+                { atomicNumber: 13, symbol: 'Al', name: 'อะลูมิเนียม', category: 'โลหะ' }, { atomicNumber: 14, symbol: 'Si', name: 'ซิลิคอน', category: 'เมทัลลอยด์' },
+                { atomicNumber: 15, symbol: 'P', name: 'ฟอสฟอรัส', category: 'นอนเมทัล' }, { atomicNumber: 16, symbol: 'S', name: 'กำมะถัน', category: 'นอนเมทัล' },
+                { atomicNumber: 17, symbol: 'Cl', name: 'คลอรีน', category: 'แฮโลเจน' }, { atomicNumber: 18, symbol: 'Ar', name: 'อาร์กอน', category: 'ก๊าซมีตระกูล' },
+                { atomicNumber: 19, symbol: 'K', name: 'โพแทสเซียม', category: 'โลหะแอลคาไล' }, { atomicNumber: 20, symbol: 'Ca', name: 'แคลเซียม', category: 'โลหะแอลคาไลน์เอิร์ท' },
+                { atomicNumber: 21, symbol: 'Sc', name: 'สแคนเดียม', category: 'โลหะทรานซิชัน' }, { atomicNumber: 22, symbol: 'Ti', name: 'ไทเทเนียม', category: 'โลหะทรานซิชัน' },
+                { atomicNumber: 23, symbol: 'V', name: 'วาเนเดียม', category: 'โลหะทรานซิชัน' }, { atomicNumber: 24, symbol: 'Cr', name: 'โครเมียม', category: 'โลหะทรานซิชัน' },
+                { atomicNumber: 25, symbol: 'Mn', name: 'แมงกานีส', category: 'โลหะทรานซิชัน' }, { atomicNumber: 26, symbol: 'Fe', name: 'เหล็ก', category: 'โลหะทรานซิชัน' },
+                { atomicNumber: 27, symbol: 'Co', name: 'โคบอลต์', category: 'โลหะทรานซิชัน' }, { atomicNumber: 28, symbol: 'Ni', name: 'นิกเกิล', category: 'โลหะทรานซิชัน' },
+                { atomicNumber: 29, symbol: 'Cu', name: 'ทองแดง', category: 'โลหะทรานซิชัน' }, { atomicNumber: 30, symbol: 'Zn', name: 'สังกะสี', category: 'โลหะทรานซิชัน' },
+                { atomicNumber: 31, symbol: 'Ga', name: 'แกลเลียม', category: 'โลหะ' }, { atomicNumber: 32, symbol: 'Ge', name: 'เจอร์เมเนียม', category: 'เมทัลลอยด์' },
+                { atomicNumber: 33, symbol: 'As', name: 'สารหนู', category: 'เมทัลลอยด์' }, { atomicNumber: 34, symbol: 'Se', name: 'ซีลีเนียม', category: 'นอนเมทัล' },
+                { atomicNumber: 35, symbol: 'Br', name: 'โบรมีน', category: 'แฮโลเจน' }, { atomicNumber: 36, symbol: 'Kr', name: 'คริปทอน', category: 'ก๊าซมีตระกูล' },
+                { atomicNumber: 37, symbol: 'Rb', name: 'รูบิเดียม', category: 'โลหะแอลคาไล' }, { atomicNumber: 38, symbol: 'Sr', name: 'สตรอนเชียม', category: 'โลหะแอลคาไลน์เอิร์ท' },
+                { atomicNumber: 39, symbol: 'Y', name: 'อิตเทรียม', category: 'โลหะทรานซิชัน' }, { atomicNumber: 40, symbol: 'Zr', name: 'เซอร์โคเนียม', category: 'โลหะทรานซิชัน' },
+                { atomicNumber: 41, symbol: 'Nb', name: 'ไนโอเบียม', category: 'โลหะทรานซิชัน' }, { atomicNumber: 42, symbol: 'Mo', name: 'โมลิบดีนัม', category: 'โลหะทรานซิชัน' },
+                { atomicNumber: 43, symbol: 'Tc', name: 'เทคนีเชียม', category: 'โลหะทรานซิชัน' }, { atomicNumber: 44, symbol: 'Ru', name: 'รูทีเนียม', category: 'โลหะทรานซิชัน' },
+                { atomicNumber: 45, symbol: 'Rh', name: 'โรเดียม', category: 'โลหะทรานซิชัน' }, { atomicNumber: 46, symbol: 'Pd', name: 'พัลลาเดียม', category: 'โลหะทรานซิชัน' },
+                { atomicNumber: 47, symbol: 'Ag', name: 'เงิน', category: 'โลหะทรานซิชัน' }, { atomicNumber: 48, symbol: 'Cd', name: 'แคดเมียม', category: 'โลหะทรานซิชัน' },
+                { atomicNumber: 49, symbol: 'In', name: 'อินเดียม', category: 'โลหะ' }, { atomicNumber: 50, symbol: 'Sn', name: 'ดีบุก', category: 'โลหะ' },
+                { atomicNumber: 51, symbol: 'Sb', name: 'พลวง', category: 'เมทัลลอยด์' }, { atomicNumber: 52, symbol: 'Te', name: 'เทลลูเรียม', category: 'เมทัลลอยด์' },
+                { atomicNumber: 53, symbol: 'I', name: 'ไอโอดีน', category: 'แฮโลเจน' }, { atomicNumber: 54, symbol: 'Xe', name: 'ซีนอน', category: 'ก๊าซมีตระกูล' },
+                { atomicNumber: 55, symbol: 'Cs', name: 'ซีเซียม', category: 'โลหะแอลคาไล' }, { atomicNumber: 56, symbol: 'Ba', name: 'แบเรียม', category: 'โลหะแอลคาไลน์เอิร์ท' },
+                { atomicNumber: 57, symbol: 'La', name: 'แลนทานัม', category: 'แลนทาไนด์' }, { atomicNumber: 58, symbol: 'Ce', name: 'ซีเรียม', category: 'แลนทาไนด์' },
+                { atomicNumber: 59, symbol: 'Pr', name: 'เพรซีโอดิเมียม', category: 'แลนทาไนด์' }, { atomicNumber: 60, symbol: 'Nd', name: 'นีโอดิเมียม', category: 'แลนทาไนด์' },
+                { atomicNumber: 61, symbol: 'Pm', name: 'โพรมีเทียม', category: 'แลนทาไนด์' }, { atomicNumber: 62, symbol: 'Sm', name: 'ซาแมเรียม', category: 'แลนทาไนด์' },
+                { atomicNumber: 63, symbol: 'Eu', name: 'ยูโรเพียม', category: 'แลนทาไนด์' }, { atomicNumber: 64, symbol: 'Gd', name: 'แกโดลิเนียม', category: 'แลนทาไนด์' },
+                { atomicNumber: 65, symbol: 'Tb', name: 'เทอร์เบียม', category: 'แลนทาไนด์' }, { atomicNumber: 66, symbol: 'Dy', name: 'ดิสโพรเซียม', category: 'แลนทาไนด์' },
+                { atomicNumber: 67, symbol: 'Ho', name: 'โฮลเมียม', category: 'แลนทาไนด์' }, { atomicNumber: 68, symbol: 'Er', name: 'เออร์เบียม', category: 'แลนทาไนด์' },
+                { atomicNumber: 69, symbol: 'Tm', name: 'ทูเลียม', category: 'แลนทาไนด์' }, { atomicNumber: 70, symbol: 'Yb', name: 'อิตเทอร์เบียม', category: 'แลนทาไนด์' },
+                { atomicNumber: 71, symbol: 'Lu', name: 'ลูทีเชียม', category: 'แลนทาไนด์' }, { atomicNumber: 72, symbol: 'Hf', name: 'แฮฟเนียม', category: 'โลหะทรานซิชัน' },
+                { atomicNumber: 73, symbol: 'Ta', name: 'แทนทาลัม', category: 'โลหะทรานซิชัน' }, { atomicNumber: 74, symbol: 'W', name: 'ทังสเตน', category: 'โลหะทรานซิชัน' },
+                { atomicNumber: 75, symbol: 'Re', name: 'รีเนียม', category: 'โลหะทรานซิชัน' }, { atomicNumber: 76, symbol: 'Os', name: 'ออสเมียม', category: 'โลหะทรานซิชัน' },
+                { atomicNumber: 77, symbol: 'Ir', name: 'อิริเดียม', category: 'โลหะทรานซิชัน' }, { atomicNumber: 78, symbol: 'Pt', name: 'แพลทินัม', category: 'โลหะทรานซิชัน' },
+                { atomicNumber: 79, symbol: 'Au', name: 'ทองคำ', category: 'โลหะทรานซิชัน' }, { atomicNumber: 80, symbol: 'Hg', name: 'ปรอท', category: 'โลหะทรานซิชัน' },
+                { atomicNumber: 81, symbol: 'Tl', name: 'แทลเลียม', category: 'โลหะ' }, { atomicNumber: 82, symbol: 'Pb', name: 'ตะกั่ว', category: 'โลหะ' },
+                { atomicNumber: 83, symbol: 'Bi', name: 'บิสมัท', category: 'โลหะ' }, { atomicNumber: 84, symbol: 'Po', name: 'โพโลเนียม', category: 'เมทัลลอยด์' },
+                { atomicNumber: 85, symbol: 'At', name: 'แอสทาทีน', category: 'แฮโลเจน' }, { atomicNumber: 86, symbol: 'Rn', name: 'เรดอน', category: 'ก๊าซมีตระกูล' },
+                { atomicNumber: 87, symbol: 'Fr', name: 'แฟรนเซียม', category: 'โลหะแอลคาไล' }, { atomicNumber: 88, symbol: 'Ra', name: 'เรเดียม', category: 'โลหะแอลคาไลน์เอิร์ท' },
+                { atomicNumber: 89, symbol: 'Ac', name: 'แอกทิเนียม', category: 'แอกทิไนด์' }, { atomicNumber: 90, symbol: 'Th', name: 'ทอเรียม', category: 'แอกทิไนด์' },
+                { atomicNumber: 91, symbol: 'Pa', name: 'โพรแทกทิเนียม', category: 'แอกทิไนด์' }, { atomicNumber: 92, symbol: 'U', name: 'ยูเรเนียม', category: 'แอกทิไนด์' },
+                { atomicNumber: 93, symbol: 'Np', name: 'เนปทูเนียม', category: 'แอกทิไนด์' }, { atomicNumber: 94, symbol: 'Pu', name: 'พลูโทเนียม', category: 'แอกทิไนด์' },
+                { atomicNumber: 95, symbol: 'Am', name: 'อะเมริเซียม', category: 'แอกทิไนด์' }, { atomicNumber: 96, symbol: 'Cm', name: 'คูเรียม', category: 'แอกทิไนด์' },
+                { atomicNumber: 97, symbol: 'Bk', name: 'เบอร์คีเลียม', category: 'แอกทิไนด์' }, { atomicNumber: 98, symbol: 'Cf', name: 'แคลิฟอร์เนียม', category: 'แอกทิไนด์' },
+                { atomicNumber: 99, symbol: 'Es', name: 'ไอน์สไตเนียม', category: 'แอกทิไนด์' }, { atomicNumber: 100, symbol: 'Fm', name: 'เฟอร์เมียม', category: 'แอกทิไนด์' },
+                { atomicNumber: 101, symbol: 'Md', name: 'เมนเดลีเวียม', category: 'แอกทิไนด์' }, { atomicNumber: 102, symbol: 'No', name: 'โนเบเลียม', category: 'แอกทิไนด์' },
+                { atomicNumber: 103, symbol: 'Lr', name: 'ลอว์เรนเซียม', category: 'แอกทิไนด์' }, { atomicNumber: 104, symbol: 'Rf', name: 'รัทเทอร์ฟอร์เดียม', category: 'โลหะทรานซิชัน' },
+                { atomicNumber: 105, symbol: 'Db', name: 'ดุบเนียม', category: 'โลหะทรานซิชัน' }, { atomicNumber: 106, symbol: 'Sg', name: 'ซีบอร์เกียม', category: 'โลหะทรานซิชัน' },
+                { atomicNumber: 107, symbol: 'Bh', name: 'โบห์เรียม', category: 'โลหะทรานซิชัน' }, { atomicNumber: 108, symbol: 'Hs', name: 'ฮัสเซียม', category: 'โลหะทรานซิชัน' },
+                { atomicNumber: 109, symbol: 'Mt', name: 'ไมต์เนเรียม', category: 'โลหะทรานซิชัน' }, { atomicNumber: 110, symbol: 'Ds', name: 'ดาร์มสตัดเทียม', category: 'โลหะทรานซิชัน' },
+                { atomicNumber: 111, symbol: 'Rg', name: 'เรินต์เกเนียม', category: 'โลหะทรานซิชัน' }, { atomicNumber: 112, symbol: 'Cn', name: 'โคเปอร์นิเซียม', category: 'โลหะทรานซิชัน' },
+                { atomicNumber: 113, symbol: 'Nh', name: 'นิโฮเนียม', category: 'โลหะ' }, { atomicNumber: 114, symbol: 'Fl', name: 'ฟลีโรเวียม', category: 'โลหะ' },
+                { atomicNumber: 115, symbol: 'Mc', name: 'มอสโกเวียม', category: 'โลหะ' }, { atomicNumber: 116, symbol: 'Lv', name: 'ลิเวอร์มอเรียม', category: 'โลหะ' },
+                { atomicNumber: 117, symbol: 'Ts', name: 'เทนเนสซีน', category: 'แฮโลเจน' }, { atomicNumber: 118, symbol: 'Og', name: 'โอกาเนสซอน', category: 'ก๊าซมีตระกูล' }
+            ];
+            const ELEMENT_POSITIONS = { 
+                1: { row: 1, col: 1 }, 2: { row: 1, col: 18 }, 3: { row: 2, col: 1 }, 4: { row: 2, col: 2 }, 5: { row: 2, col: 13 }, 6: { row: 2, col: 14 }, 7: { row: 2, col: 15 }, 8: { row: 2, col: 16 }, 9: { row: 2, col: 17 }, 10: { row: 2, col: 18 }, 11: { row: 3, col: 1 }, 12: { row: 3, col: 2 }, 13: { row: 3, col: 13 }, 14: { row: 3, col: 14 }, 15: { row: 3, col: 15 }, 16: { row: 3, col: 16 }, 17: { row: 3, col: 17 }, 18: { row: 3, col: 18 }, 19: { row: 4, col: 1 }, 20: { row: 4, col: 2 }, 21: { row: 4, col: 3 }, 22: { row: 4, col: 4 }, 23: { row: 4, col: 5 }, 24: { row: 4, col: 6 }, 25: { row: 4, col: 7 }, 26: { row: 4, col: 8 }, 27: { row: 4, col: 9 }, 28: { row: 4, col: 10 }, 29: { row: 4, col: 11 }, 30: { row: 4, col: 12 }, 31: { row: 4, col: 13 }, 32: { row: 4, col: 14 }, 33: { row: 4, col: 15 }, 34: { row: 4, col: 16 }, 35: { row: 4, col: 17 }, 36: { row: 4, col: 18 }, 37: { row: 5, col: 1 }, 38: { row: 5, col: 2 }, 39: { row: 5, col: 3 }, 40: { row: 5, col: 4 }, 41: { row: 5, col: 5 }, 42: { row: 5, col: 6 }, 43: { row: 5, col: 7 }, 44: { row: 5, col: 8 }, 45: { row: 5, col: 9 }, 46: { row: 5, col: 10 }, 47: { row: 5, col: 11 }, 48: { row: 5, col: 12 }, 49: { row: 5, col: 13 }, 50: { row: 5, col: 14 }, 51: { row: 5, col: 15 }, 52: { row: 5, col: 16 }, 53: { row: 5, col: 17 }, 54: { row: 5, col: 18 }, 55: { row: 6, col: 1 }, 56: { row: 6, col: 2 }, 57: { row: 9, col: 3 }, 58: { row: 9, col: 4 }, 59: { row: 9, col: 5 }, 60: { row: 9, col: 6 }, 61: { row: 9, col: 7 }, 62: { row: 9, col: 8 }, 63: { row: 9, col: 9 }, 64: { row: 9, col: 10 }, 65: { row: 9, col: 11 }, 66: { row: 9, col: 12 }, 67: { row: 9, col: 13 }, 68: { row: 9, col: 14 }, 69: { row: 9, col: 15 }, 70: { row: 9, col: 16 }, 71: { row: 9, col: 17 }, 72: { row: 6, col: 4 }, 73: { row: 6, col: 5 }, 74: { row: 6, col: 6 }, 75: { row: 6, col: 7 }, 76: { row: 6, col: 8 }, 77: { row: 6, col: 9 }, 78: { row: 6, col: 10 }, 79: { row: 6, col: 11 }, 80: { row: 6, col: 12 }, 81: { row: 6, col: 13 }, 82: { row: 6, col: 14 }, 83: { row: 6, col: 15 }, 84: { row: 6, col: 16 }, 85: { row: 6, col: 17 }, 86: { row: 6, col: 18 }, 87: { row: 7, col: 1 }, 88: { row: 7, col: 2 }, 89: { row: 10, col: 3 }, 90: { row: 10, col: 4 }, 91: { row: 10, col: 5 }, 92: { row: 10, col: 6 }, 93: { row: 10, col: 7 }, 94: { row: 10, col: 8 }, 95: { row: 10, col: 9 }, 96: { row: 10, col: 10 }, 97: { row: 10, col: 11 }, 98: { row: 10, col: 12 }, 99: { row: 10, col: 13 }, 100: { row: 10, col: 14 }, 101: { row: 10, col: 15 }, 102: { row: 10, col: 16 }, 103: { row: 10, col: 17 }, 104: { row: 7, col: 4 }, 105: { row: 7, col: 5 }, 106: { row: 7, col: 6 }, 107: { row: 7, col: 7 }, 108: { row: 7, col: 8 }, 109: { row: 7, col: 9 }, 110: { row: 7, col: 10 }, 111: { row: 7, col: 11 }, 112: { row: 7, col: 12 }, 113: { row: 7, col: 13 }, 114: { row: 7, col: 14 }, 115: { row: 7, col: 15 }, 116: { row: 7, col: 16 }, 117: { row: 7, col: 17 }, 118: { row: 7, col: 18 }
+            };
+            const CATEGORY_DIFFICULTY = {
+                easy: ['โลหะแอลคาไล', 'ก๊าซมีตระกูล'],
+                medium: ['โลหะแอลคาไล', 'ก๊าซมีตระกูล', 'แฮโลเจน', 'โลหะแอลคาไลน์เอิร์ท', 'นอนเมทัล', 'โลหะทรานซิชัน', 'เมทัลลอยด์'],
+                hard: [...new Set(ELEMENTS_DATA.map(el => el.category))] // All unique categories
+            };
+            const TRIVIA_QUESTIONS = [
+                { question_text: "ในอากาศมีแก๊สอะไรมากที่สุด?", correct_answer_symbol: "N", difficulty: "easy" },
+                { question_text: "ธาตุใดที่ใช้ทำไส้ดินสอ?", correct_answer_symbol: "C", difficulty: "easy" },
+                { question_text: "ธาตุใดเป็นส่วนประกอบหลักของน้ำ?", correct_answer_symbol: "O", difficulty: "easy" },
+                { question_text: "ในยาสีฟันมีธาตุใดเป็นส่วนประกอบหลัก?", correct_answer_symbol: "F", difficulty: "medium" },
+                { question_text: "ธาตุที่เป็นโลหะของเหลวที่อุณหภูมิห้องคือ?", correct_answer_symbol: "Hg", difficulty: "medium" },
+                { question_text: "ธาตุใดจำเป็นต่อการสร้างกระดูกและฟัน?", correct_answer_symbol: "Ca", difficulty: "medium" },
+                { question_text: "ธาตุใดที่เป็นส่วนประกอบสำคัญของเหล็กกล้าไร้สนิม?", correct_answer_symbol: "Cr", difficulty: "hard" },
+                { question_text: "ธาตุใดที่ตั้งชื่อตามดาวเคราะห์แคระพลูโต?", correct_answer_symbol: "Pu", difficulty: "hard" },
+            ];
+
+            // --- DOM Elements & Game State ---
+            const screens = { mainMenu: document.getElementById('main-menu-screen'), difficulty: document.getElementById('difficulty-screen'), customization: document.getElementById('customization-screen'), game: document.getElementById('game-screen'), gameOver: document.getElementById('game-over-screen') };
+            const gameModeContainers = { drag_to_atom: document.getElementById('drag-to-atom-container'), multiple_choice: document.getElementById('multiple-choice-container') };
+            const elementSelectorGrid = document.getElementById('element-selector-grid');
+            const elementCountDisplay = document.getElementById('element-count');
+            const startGameBtn = document.getElementById('start-game-btn');
+            const playAgainBtn = document.getElementById('play-again-btn');
+            const livesDisplay = document.getElementById('lives-display');
+            const timerDisplay = document.getElementById('timer-display');
+            const scoreDisplay = document.getElementById('score-display');
+            const finalScoreDisplay = document.getElementById('final-score');
+            const firstScoreDisplay = document.getElementById('first-score');
+            const highScoreDisplay = document.getElementById('high-score');
+            const feedbackContainer = document.getElementById('feedback-container');
+            const categoryTooltip = document.getElementById('category-tooltip');
+            const soundToggle = document.getElementById('sound-toggle');
+
+            let gameState = { mode: null, difficulty: null };
+            let propertyQuestionsBank = [];
+            let selectedElements = new Set();
+            let gameElementsQueue = [];
+            let lives, score, timeLeft, timerInterval, longPressTimer;
+            
+            // --- Audio ---
+            let uiSynth, correctSynth, wrongSynth, bgMusic, isAudioInitialized = false;
+
+            async function initAudio() {
+                if (isAudioInitialized || typeof Tone === 'undefined') {
+                     if (typeof Tone === 'undefined' && !isAudioInitialized) {
+                        console.warn("Tone.js library not loaded. Audio will be disabled.");
+                     }
+                    return;
+                }
+                await Tone.start();
+                
+                uiSynth = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 } }).toDestination();
+                correctSynth = new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination();
+                wrongSynth = new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.01, decay: 0.5, sustain: 0, release: 0.2 } }).toDestination();
+                
+                const bgSynth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: "amsine", harmonicity: 1.2 },
+                    envelope: { attack: 0.01, decay: 0.3, sustain: 0.1, release: 0.2 }
+                }).toDestination();
+                bgSynth.volume.value = -12;
+
+                bgMusic = new Tone.Sequence((time, note) => {
+                    bgSynth.triggerAttackRelease(note, "8n", time);
+                }, ["C4", "E4", "G4", "B4"], "4n");
+                
+                Tone.Transport.bpm.value = 100;
+                isAudioInitialized = true;
+                console.log("Audio Initialized");
+            }
+
+            // --- Navigation ---
+            const showScreen = (screenName) => {
+                Object.values(screens).forEach(screen => screen.classList.remove('active'));
+                screens[screenName].classList.add('active');
+            };
+
+            document.querySelectorAll('.game-select-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    await initAudio();
+                    if (isAudioInitialized) uiSynth.triggerAttackRelease("C5", "8n");
+                    gameState.mode = btn.dataset.mode;
+                    if (gameState.mode === 'guess_property') {
+                        showScreen('difficulty');
+                    } else {
+                        document.getElementById('customization-title').textContent = btn.textContent;
+                        showScreen('customization');
+                    }
+                });
+            });
+
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    await initAudio();
+                    if (isAudioInitialized) uiSynth.triggerAttackRelease("C5", "8n");
+                    gameState.difficulty = btn.dataset.difficulty;
+                    propertyQuestionsBank = generatePropertyQuestions(gameState.difficulty);
+                    startGame();
+                });
+            });
+            
+            // --- Question Generation for Property Game ---
+            const generatePropertyQuestions = (difficulty) => {
+                const questions = [];
+                const allowedCategories = CATEGORY_DIFFICULTY[difficulty];
+                
+                const availableTrivia = TRIVIA_QUESTIONS.filter(q => {
+                    if (difficulty === 'easy') return q.difficulty === 'easy';
+                    if (difficulty === 'medium') return q.difficulty === 'easy' || q.difficulty === 'medium';
+                    return true; // Hard includes all
+                });
+
+                while (questions.length < 100) {
+                    // 40% chance of a trivia question
+                    if (availableTrivia.length > 0 && Math.random() < 0.4) {
+                        const trivia = availableTrivia[Math.floor(Math.random() * availableTrivia.length)];
+                        const correctAnswer = ELEMENTS_DATA.find(el => el.symbol === trivia.correct_answer_symbol);
+                        if (!correctAnswer) continue;
+
+                        const distractorPool = ELEMENTS_DATA.filter(el => el.atomicNumber !== correctAnswer.atomicNumber);
+                        const choices = new Set([correctAnswer]);
+                        while (choices.size < 4 && distractorPool.length > 0) {
+                            const randomIndex = Math.floor(Math.random() * distractorPool.length);
+                            choices.add(distractorPool.splice(randomIndex, 1)[0]);
+                        }
+                        if (choices.size === 4) {
+                            questions.push({
+                                type: 'trivia',
+                                questionText: trivia.question_text,
+                                correctAnswer: correctAnswer,
+                                choices: Array.from(choices).sort(() => Math.random() - 0.5)
+                            });
+                        }
+                    } else {
+                        const metalCategories = ['โลหะแอลคาไล', 'โลหะแอลคาไลน์เอิร์ท', 'โลหะทรานซิชัน', 'โลหะ', 'แลนทาไนด์', 'แอกทิไนด์'];
+                        const nonMetalCategories = ['ก๊าซมีตระกูล', 'แฮโลเจน', 'นอนเมทัล', 'เมทัลลอยด์'];
+                        const questionCategory = allowedCategories[Math.floor(Math.random() * allowedCategories.length)];
+                        const possibleCorrectAnswers = ELEMENTS_DATA.filter(el => el.category === questionCategory);
+                        if (possibleCorrectAnswers.length === 0) continue;
+
+                        const correctAnswer = possibleCorrectAnswers[Math.floor(Math.random() * possibleCorrectAnswers.length)];
+                        
+                        let distractorPool;
+                        if (difficulty === 'easy') {
+                            const isMetalQuestion = metalCategories.includes(questionCategory);
+                            distractorPool = isMetalQuestion 
+                                ? ELEMENTS_DATA.filter(el => nonMetalCategories.includes(el.category))
+                                : ELEMENTS_DATA.filter(el => metalCategories.includes(el.category));
+                        } else {
+                            distractorPool = ELEMENTS_DATA.filter(el => el.category !== questionCategory);
+                        }
+                        distractorPool = distractorPool.filter(el => el.atomicNumber !== correctAnswer.atomicNumber);
+
+                        const choices = new Set([correctAnswer]);
+                        while (choices.size < 4 && distractorPool.length > 0) {
+                            const randomIndex = Math.floor(Math.random() * distractorPool.length);
+                            choices.add(distractorPool.splice(randomIndex, 1)[0]);
+                        }
+                        
+                        if (choices.size === 4) {
+                            questions.push({
+                                type: 'category',
+                                questionText: `ธาตุใดต่อไปนี้จัดอยู่ในกลุ่ม <span class="element-name">${questionCategory}</span>?`,
+                                correctAnswer: correctAnswer,
+                                choices: Array.from(choices).sort(() => Math.random() - 0.5)
+                            });
+                        }
+                    }
+                }
+                return questions;
+            };
+
+
+            // --- Customization ---
+            const populateCustomizationGrid = () => {
+                elementSelectorGrid.innerHTML = '';
+                ELEMENTS_DATA.forEach(el => {
+                    const choice = document.createElement('div');
+                    choice.className = 'element-choice';
+                    choice.dataset.atomicNumber = el.atomicNumber;
+                    choice.innerHTML = `<div class="symbol">${el.symbol}</div><div class="number">${el.atomicNumber}</div>`;
+                    choice.addEventListener('click', (e) => {
+                        const choiceDiv = e.currentTarget;
+                        const atomicNum = parseInt(choiceDiv.dataset.atomicNumber);
+                        if (selectedElements.has(atomicNum)) {
+                            selectedElements.delete(atomicNum);
+                            choiceDiv.classList.remove('selected');
+                        } else {
+                            selectedElements.add(atomicNum);
+                            choiceDiv.classList.add('selected');
+                        }
+                        elementCountDisplay.textContent = `เลือกแล้ว ${selectedElements.size} ธาตุ`;
+                        startGameBtn.disabled = selectedElements.size < 5;
+                    });
+                    elementSelectorGrid.appendChild(choice);
+                });
+            };
+
+            // --- Game Start & End ---
+            const startGame = () => {
+                lives = 3; score = 0; timeLeft = 90;
+                
+                Object.values(gameModeContainers).forEach(c => c.style.display = 'none');
+
+                if (gameState.mode === 'guess_property') {
+                    gameElementsQueue = [...propertyQuestionsBank].sort(() => Math.random() - 0.5).slice(0, 10);
+                     if (gameElementsQueue.length < 1) {
+                        alert('เกิดข้อผิดพลาดในการสร้างคำถามสำหรับระดับความยากนี้');
+                        showScreen('mainMenu');
+                        return;
+                    }
+                    gameModeContainers.multiple_choice.style.display = 'flex';
+                    displayNextPropertyQuestion();
+                } else {
+                    const elementsToPlay = ELEMENTS_DATA.filter(el => selectedElements.has(el.atomicNumber));
+                    gameElementsQueue = [...elementsToPlay].sort(() => Math.random() - 0.5);
+                    if (gameState.mode === 'drag_to_atom') {
+                        gameModeContainers.drag_to_atom.style.display = 'flex';
+                        setupAtomPlacementGame();
+                    } else { // guess_symbol
+                        gameModeContainers.multiple_choice.style.display = 'flex';
+                        displayNextSymbolQuestion();
+                    }
+                }
+                
+                updateUI();
+                if (isAudioInitialized && !Tone.getDestination().mute) {
+                    Tone.Transport.start();
+                    bgMusic.start(0);
+                }
+                showScreen('game');
+                startTimer();
+            };
+            
+            const getScoreKeys = () => {
+                let baseKey = `elementia_${gameState.mode}`;
+                if (gameState.mode === 'guess_property') {
+                    baseKey += `_${gameState.difficulty}`;
+                }
+                return {
+                    first: `${baseKey}_first_score`,
+                    high: `${baseKey}_high_score`
+                };
+            };
+
+            const endGame = () => {
+                clearInterval(timerInterval);
+                clearTimeout(longPressTimer);
+                if(isAudioInitialized) {
+                    bgMusic.stop();
+                    Tone.Transport.stop();
+                }
+                hideCategoryTooltip();
+                finalScoreDisplay.textContent = `คะแนนของคุณ: ${score}`;
+
+                const { first: firstScoreKey, high: highScoreKey } = getScoreKeys();
+
+                // Handle First Score
+                let firstScore = localStorage.getItem(firstScoreKey);
+                if (firstScore === null) {
+                    firstScore = score;
+                    localStorage.setItem(firstScoreKey, score.toString());
+                }
+                firstScoreDisplay.textContent = `คะแนนครั้งแรก: ${firstScore}`;
+
+                // Handle High Score
+                let highScore = localStorage.getItem(highScoreKey);
+                if (highScore === null || score > parseInt(highScore)) {
+                    highScore = score;
+                    localStorage.setItem(highScoreKey, score.toString());
+                }
+                highScoreDisplay.textContent = `คะแนนสูงสุด: ${highScore}`;
+
+
+                showScreen('gameOver');
+            };
+
+            // --- UI & Timer ---
+            const updateUI = () => {
+                const heartSVG = (isLost) => `
+                    <svg class="life-icon-svg ${isLost ? 'lost' : ''}" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>`;
+                livesDisplay.innerHTML = Array.from({ length: 3 }, (_, i) => heartSVG(i >= lives)).join('');
+                scoreDisplay.textContent = `Score: ${score}`;
+                timerDisplay.textContent = `${String(Math.floor(timeLeft / 60)).padStart(2, '0')}:${String(timeLeft % 60).padStart(2, '0')}`;
+            };
+            const startTimer = () => {
+                clearInterval(timerInterval);
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    updateUI();
+                    if (timeLeft <= 0) endGame();
+                }, 1000);
+            };
+            
+            // --- GAME MODE 1: Click to Place Atom ---
+            const setupAtomPlacementGame = () => {
+                const gameGrid = document.getElementById('game-grid');
+                gameGrid.innerHTML = '';
+                const elementsInGame = ELEMENTS_DATA.filter(el => selectedElements.has(el.atomicNumber));
+
+                const categoryToClass = {
+                    'นอนเมทัล': 'nonmetal', 'โลหะแอลคาไล': 'alkali-metal', 'โลหะแอลคาไลน์เอิร์ท': 'alkaline-earth',
+                    'เมทัลลอยด์': 'metalloid', 'แฮโลเจน': 'halogen', 'ก๊าซมีตระกูล': 'noble-gas',
+                    'โลหะทรานซิชัน': 'transition-metal', 'โลหะ': 'metal', 'แลนทาไนด์': 'lanthanide', 'แอกทิไนด์': 'actinide'
+                };
+
+                // Placeholders
+                const placeholderLa = document.createElement('div');
+                placeholderLa.className = 'grid-slot placeholder-slot';
+                placeholderLa.style.setProperty('--row', 6); placeholderLa.style.setProperty('--col', 3);
+                placeholderLa.innerHTML = `<span>57-71</span><div class="category-lanthanide" style="width: 80%; height: 5px; margin-top: 2px;"></div>`;
+                gameGrid.appendChild(placeholderLa);
+
+                const placeholderAc = document.createElement('div');
+                placeholderAc.className = 'grid-slot placeholder-slot';
+                placeholderAc.style.setProperty('--row', 7); placeholderAc.style.setProperty('--col', 3);
+                placeholderAc.innerHTML = `<span>89-103</span><div class="category-actinide" style="width: 80%; height: 5px; margin-top: 2px;"></div>`;
+                gameGrid.appendChild(placeholderAc);
+
+                elementsInGame.forEach(el => {
+                    const pos = ELEMENT_POSITIONS[el.atomicNumber];
+                    if (!pos) return;
+                    const slot = document.createElement('div');
+                    slot.className = 'grid-slot';
+                    const categoryClass = categoryToClass[el.category];
+                    if (categoryClass) {
+                        slot.classList.add(`category-${categoryClass}`);
+                    }
+                    slot.dataset.category = el.category;
+                    slot.dataset.atomicNumber = el.atomicNumber;
+                    slot.textContent = el.atomicNumber;
+                    slot.style.setProperty('--col', pos.col); slot.style.setProperty('--row', pos.row);
+                    
+                    slot.addEventListener('click', handleSlotClick);
+
+                    const startPress = (e) => {
+                        const targetSlot = e.currentTarget;
+                        if (targetSlot.classList.contains('correct')) return;
+                        longPressTimer = setTimeout(() => showCategoryTooltip(targetSlot), 500);
+                    };
+
+                    slot.addEventListener('mousedown', startPress);
+                    slot.addEventListener('touchstart', startPress, { passive: true });
+                    slot.addEventListener('mouseup', hideCategoryTooltip);
+                    slot.addEventListener('mouseleave', hideCategoryTooltip);
+                    slot.addEventListener('touchend', hideCategoryTooltip);
+
+                    gameGrid.appendChild(slot);
+                });
+                populateColorLegend();
+                displayNextQuestion();
+            };
+
+            const populateColorLegend = () => {
+                const legendContainer = document.getElementById('color-legend');
+                legendContainer.innerHTML = '';
+                const legendMap = {
+                    'โลหะแอลคาไล': 'var(--color-alkali-metal)', 'โลหะแอลคาไลน์เอิร์ท': 'var(--color-alkaline-earth)',
+                    'แลนทาไนด์': 'var(--color-lanthanide)', 'แอกทิไนด์': 'var(--color-actinide)',
+                    'โลหะทรานซิชัน': 'var(--color-transition-metal)', 'โลหะ': 'var(--color-metal)',
+                    'เมทัลลอยด์': 'var(--color-metalloid)', 'นอนเมทัล': 'var(--color-nonmetal)',
+                    'แฮโลเจน': 'var(--color-halogen)', 'ก๊าซมีตระกูล': 'var(--color-noble-gas)'
+                };
+                for (const [name, color] of Object.entries(legendMap)) {
+                    const item = document.createElement('div');
+                    item.className = 'legend-item';
+                    item.innerHTML = `<div class="legend-color-box" style="background-color: ${color};"></div><span>${name}</span>`;
+                    legendContainer.appendChild(item);
+                }
+            };
+            
+            const displayNextQuestion = () => {
+                const questionBox = document.getElementById('question-display-box');
+                questionBox.innerHTML = '';
+                if (gameElementsQueue.length === 0) { 
+                    endGame(); 
+                    return; 
+                }
+                
+                const correctElement = gameElementsQueue[0];
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.innerHTML = `<div class="symbol">${correctElement.symbol}</div><div class="name">${correctElement.name}</div>`;
+                questionBox.appendChild(card);
+            };
+
+            const handleSlotClick = (e) => {
+                const targetSlot = e.currentTarget;
+                const targetAtomicNumber = parseInt(targetSlot.dataset.atomicNumber);
+
+                if (gameElementsQueue.length > 0 && targetAtomicNumber === gameElementsQueue[0].atomicNumber) {
+                    if (isAudioInitialized) correctSynth.triggerAttackRelease("G5", "16n");
+                    score += 100;
+                    const correctElement = gameElementsQueue[0];
+                    targetSlot.classList.add('correct');
+                    targetSlot.innerHTML = `<div class="element-symbol">${correctElement.symbol}</div><div class="element-name">${correctElement.name}</div>`;
+                    targetSlot.removeEventListener('click', handleSlotClick);
+                    showFeedback('✔', true);
+                    gameElementsQueue.shift();
+                    displayNextQuestion();
+                } else {
+                    if (isAudioInitialized) wrongSynth.triggerAttackRelease("C3", "8n");
+                    lives--;
+                    showFeedback('✖', false);
+                    if (lives <= 0) endGame();
+                }
+                updateUI();
+            };
+            
+            const showCategoryTooltip = (slot) => {
+                if (!slot || !slot.dataset) return; 
+                const category = slot.dataset.category;
+                if (!category) return;
+                categoryTooltip.textContent = category;
+                const rect = slot.getBoundingClientRect();
+                const appRect = document.querySelector('.app-container').getBoundingClientRect();
+                let top = rect.top - appRect.top - categoryTooltip.offsetHeight - 10;
+                let left = rect.left - appRect.left + (rect.width / 2);
+                categoryTooltip.style.top = `${top}px`;
+                categoryTooltip.style.left = `${left}px`;
+                categoryTooltip.style.display = 'block';
+            };
+
+            const hideCategoryTooltip = () => {
+                clearTimeout(longPressTimer);
+                categoryTooltip.style.display = 'none';
+            };
+
+            // --- GAME MODE 2: Guess Symbol ---
+            const displayNextSymbolQuestion = () => {
+                if (gameElementsQueue.length === 0) { endGame(); return; }
+                const correctElement = gameElementsQueue[0];
+                document.getElementById('question-area').innerHTML = `ตัวย่อของธาตุ <span class="element-name">${correctElement.name}</span> คืออะไร?`;
+                
+                const choices = new Set([correctElement]);
+                const distractorPool = ELEMENTS_DATA.filter(el => el.atomicNumber !== correctElement.atomicNumber);
+                while (choices.size < 4 && distractorPool.length > 0) {
+                    choices.add(distractorPool.splice(Math.floor(Math.random() * distractorPool.length), 1)[0]);
+                }
+
+                const optionsArea = document.getElementById('options-area');
+                optionsArea.innerHTML = '';
+                Array.from(choices).sort(() => Math.random() - 0.5).forEach(el => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.textContent = el.symbol;
+                    btn.onclick = () => handleChoice(el.atomicNumber === correctElement.atomicNumber, displayNextSymbolQuestion);
+                    optionsArea.appendChild(btn);
+                });
+            };
+            
+            // --- GAME MODE 3: Guess Property ---
+            const displayNextPropertyQuestion = () => {
+                if (gameElementsQueue.length === 0) { endGame(); return; }
+                const currentQuestion = gameElementsQueue[0];
+                const { questionText, correctAnswer, choices } = currentQuestion;
+
+                document.getElementById('question-area').innerHTML = questionText;
+                
+                const optionsArea = document.getElementById('options-area');
+                optionsArea.innerHTML = '';
+                choices.forEach(el => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.textContent = el.name;
+                    btn.onclick = () => handleChoice(el.atomicNumber === correctAnswer.atomicNumber, displayNextPropertyQuestion);
+                    optionsArea.appendChild(btn);
+                });
+            };
+
+            // --- General Functions for Multiple Choice ---
+            const handleChoice = (isCorrect, nextQuestionFunc) => {
+                if (isCorrect) {
+                    if (isAudioInitialized) correctSynth.triggerAttackRelease("G5", "16n");
+                    score += 100;
+                    showFeedback('✔', true);
+                    gameElementsQueue.shift();
+                    nextQuestionFunc();
+                } else {
+                    if (isAudioInitialized) wrongSynth.triggerAttackRelease("C3", "8n");
+                    lives--;
+                    showFeedback('✖', false);
+                    if (lives <= 0) endGame();
+                }
+                updateUI();
+            };
+
+            const showFeedback = (text, isCorrect) => {
+                const feedback = document.createElement('div');
+                feedback.className = `feedback ${isCorrect ? 'correct' : 'wrong'}`;
+                feedback.textContent = text;
+                feedbackContainer.appendChild(feedback);
+                setTimeout(() => feedback.remove(), 1000);
+            };
+
+            // --- Initial Setup ---
+            populateCustomizationGrid();
+            startGameBtn.addEventListener('click', startGame);
+            playAgainBtn.addEventListener('click', async () => {
+                await initAudio();
+                if (isAudioInitialized) uiSynth.triggerAttackRelease("C5", "8n");
+                selectedElements.clear();
+                document.querySelectorAll('.element-choice.selected').forEach(el => el.classList.remove('selected'));
+                elementCountDisplay.textContent = `เลือกแล้ว 0 ธาตุ`;
+                startGameBtn.disabled = true;
+                showScreen('mainMenu');
+            });
+
+            soundToggle.addEventListener('click', () => {
+                if (!isAudioInitialized) return;
+                Tone.getDestination().mute = !Tone.getDestination().mute;
+                soundToggle.classList.toggle('muted', Tone.getDestination().mute);
+
+                if (!Tone.getDestination().mute && Tone.Transport.state !== 'started' && screens.game.classList.contains('active')) {
+                    Tone.Transport.start();
+                    bgMusic.start(0);
+                } else if (Tone.getDestination().mute) {
+                    bgMusic.stop();
+                    Tone.Transport.stop();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
