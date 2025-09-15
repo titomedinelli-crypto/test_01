@@ -3,24 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elementia: ศึกประลองธาตุเอเลี่ยน</title>
+    <title>Elemental Hunter</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;700&family=Mali:wght@700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.min.js"></script>
     <style>
         :root {
-            --bg-color: #f8f9fa;
+            --bg-color: #f8f9fa; 
             --primary-color: #ffffff;
-            --secondary-color: #e9ecef;
-            --accent-color: #007bff;
-            --border-color: #dee2e6;
-            --text-color: #212529;
-            --text-light-color: #6c757d;
+            --secondary-color: #e9ecef; 
+            --accent-color: #1C5870;
+            --border-color: #dee2e6;   
+            --text-color: #1C5870;
+            --text-light-color: #5a7d6c;
             --correct-color: #28a745;
             --wrong-color: #dc3545;
+
+            --btn-color-1: #FAD564;
+            --btn-color-2: #D3DC7C;
+            --btn-color-3: #8EBD9D;
             
-            /* --- Element Category Colors --- */
+            /* --- Element Category Colors (Original) --- */
             --color-alkali-metal: #ffadad;
             --color-alkaline-earth: #ffd6a5;
             --color-lanthanide: #fdffb6;
@@ -54,7 +58,7 @@
             background-color: var(--primary-color);
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--border-color);
+            border: 1px solid #ccc;
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -73,10 +77,19 @@
 
         .screen.active { display: flex; }
         
-        h1 { font-size: 2.5rem; color: var(--text-color); margin-bottom: 10px; }
-        h2 { font-size: 1.2rem; color: var(--text-light-color); margin-bottom: 20px; }
+        h1 { 
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem; 
+            color: var(--text-color); 
+            margin-bottom: 10px; 
+        }
+        h2 { font-size: 1.2rem; color: var(--text-color); opacity: 0.8; margin-bottom: 20px; }
 
         /* --- Main Menu & Difficulty Screens --- */
+        #main-menu-screen {
+            position: relative;
+            justify-content: center;
+        }
         #main-menu-screen, #difficulty-screen { gap: 15px; }
         .menu-btn {
             padding: 20px 40px;
@@ -84,18 +97,33 @@
             width: 80%;
             max-width: 400px;
             font-weight: bold;
-            background-color: var(--primary-color);
             color: var(--accent-color);
             border: 2px solid var(--accent-color);
-            border-radius: 15px;
+            border-radius: 25px; /* More rounded */
             cursor: pointer;
             transition: all 0.2s ease;
+            z-index: 5;
         }
         .menu-btn:hover {
-            background-color: var(--accent-color);
             color: white;
             transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 123, 255, 0.3);
+            box-shadow: 0 8px 20px rgba(28, 88, 112, 0.3);
+        }
+        #btn-game-1 { background-color: var(--btn-color-1); border-color: #eab637; }
+        #btn-game-2 { background-color: var(--btn-color-2); border-color: #b7c05c; }
+        #btn-game-3 { background-color: var(--btn-color-3); border-color: #72a182; }
+        #btn-game-1:hover { background-color: #eab637; }
+        #btn-game-2:hover { background-color: #b7c05c; }
+        #btn-game-3:hover { background-color: #72a182; }
+
+        .main-menu-monster {
+            position: absolute;
+            bottom: -20px;
+            right: -15px;
+            width: 250px;
+            height: auto;
+            z-index: 1;
+            animation: bobbing 3s ease-in-out infinite;
         }
 
         /* --- Customization Screen --- */
@@ -137,9 +165,9 @@
             border-radius: 50px;
             cursor: pointer;
             transition: all 0.2s ease;
-            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+            box-shadow: 0 5px 15px rgba(28, 88, 112, 0.3);
         }
-        .start-button:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 123, 255, 0.4); }
+        .start-button:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(28, 88, 112, 0.4); }
         .start-button:disabled { background-color: #aaa; cursor: not-allowed; box-shadow: none; transform: none; }
 
         /* --- Game Screen --- */
@@ -251,7 +279,7 @@
         .grid-slot.correct { 
             border-style: solid;
             border-color: var(--correct-color);
-            background-color: var(--correct-color);
+            background-color: var(--correct-color) !important; /* Override category color */
             color: white;
             animation: pulse-correct 0.5s;
             cursor: default;
@@ -309,6 +337,23 @@
 
         /* Feedback & Game Over */
         #game-over-screen { gap: 15px; }
+        .game-over-monster {
+            width: 200px;
+            height: auto;
+            margin-bottom: -10px;
+        }
+        .game-over-monster .thumbs-up {
+            animation: thumbs-up-bob 2s ease-in-out infinite;
+            transform-origin: bottom center;
+        }
+
+        #game-over-title {
+            font-family: 'Mali', cursive;
+            font-size: 2.5rem;
+            color: var(--text-color);
+            margin: 0;
+        }
+
         #final-score { margin-bottom: 0; }
         #score-comparison {
             display: flex;
@@ -336,6 +381,17 @@
         .feedback { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 5rem; font-weight: bold; opacity: 0; animation: fade-out 1s; z-index: 100; }
         .feedback.correct { color: var(--correct-color); }
         .feedback.wrong { color: var(--wrong-color); animation: fade-shake 1s; }
+        
+        @keyframes bobbing {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+         @keyframes thumbs-up-bob {
+            0% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+            100% { transform: rotate(-5deg); }
+        }
         @keyframes fade-out { from { opacity: 1; transform: translate(-50%, -50%) scale(1); } to { opacity: 0; transform: translate(-50%, -50%) scale(1.5); } }
         @keyframes fade-shake { 0% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 10%, 30% { transform: translate(-55%, -50%) rotate(-5deg); } 20%, 40% { transform: translate(-45%, -50%) rotate(5deg); } 50% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); } }
         @keyframes pulse-correct { from { transform: scale(1); } 50% { transform: scale(1.05); } to { transform: scale(1); } }
@@ -346,11 +402,16 @@
     <div class="app-container">
         <!-- Screen 0: Main Menu -->
         <div id="main-menu-screen" class="screen active">
-            <h1>Elementia</h1>
+            <h1>Elemental Hunter</h1>
             <h2>เลือกโหมดเกม</h2>
-            <button class="menu-btn game-select-btn" data-mode="drag_to_atom">เกมทายเลขอะตอม</button>
-            <button class="menu-btn game-select-btn" data-mode="guess_symbol">เกมทายตัวย่อธาตุ</button>
-            <button class="menu-btn game-select-btn" data-mode="guess_property">เกมทายคุณสมบัติ</button>
+            <button id="btn-game-1" class="menu-btn game-select-btn" data-mode="drag_to_atom">เกมทายเลขอะตอม</button>
+            <button id="btn-game-2" class="menu-btn game-select-btn" data-mode="guess_symbol">เกมทายตัวย่อธาตุ</button>
+            <button id="btn-game-3" class="menu-btn game-select-btn" data-mode="guess_property">เกมทายคุณสมบัติ</button>
+            <svg class="main-menu-monster" viewBox="0 0 162 122" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M125.798 121.325C124.789 119.533 123.018 117.433 121.034 116.325C113.88 112.228 102.583 102.738 98.7984 96.1251C95.222 89.8451 94.6293 81.652 94.7984 74.3251C94.9844 66.277 96.0028 57.5192 101.498 51.5251C107.781 44.6468 114.908 43.1537 122.798 44.1251C128.603 44.8211 133.433 47.7951 137.798 51.5251C142.062 55.1584 146.401 60.8528 148.298 67.3251C149.522 71.5541 150.119 76.529 149.498 80.9251C148.835 85.6021 146.992 90.6407 144.398 94.5251C138.804 102.946 131.503 111.439 125.798 121.325Z" fill="#FAD564"/>
+                <path d="M35.1984 39.5251C35.9221 38.3073 37.0674 36.8123 38.4984 35.9251C42.8594 33.1971 49.3374 27.6521 52.5984 23.3251C55.6664 19.2311 56.6334 14.5021 54.8984 9.92508C53.0234 5.01308 48.0124 1.79408 42.9984 1.32508C36.9144 0.749082 30.6854 2.87108 25.5984 6.72508C20.6134 10.4951 15.6884 16.4801 13.5984 23.3251C12.2104 27.7941 11.8314 33.0071 13.5984 37.7251C15.5224 42.8421 20.3504 47.7801 25.5984 51.5251C31.2824 55.5911 37.9574 58.0771 44.1984 57.5251" id="Vector-2" />
+                <path d="M161.5 59.5C161.5 61.5 159.667 69.8333 158.5 72.5C155.5 79.5 149.667 86.8333 145.5 90.5C136.5 98.5 125.667 111.333 121.5 116C117.833 120.167 113.833 127.333 112.5 129.5C111.167 131.667 106.833 138.333 105.5 139.5C97.8333 146.167 81.3333 150.333 72 150.5C62.6667 150.667 47.8333 146.167 40.5 141.5C31.3333 135.667 13.3333 119.333 8.5 112.5C-1.5 98.5 -1 83.5 2 73C5.5 61 14.5 44 25.5 35.5C31.5 30.5 40.5 25.5 47 23.5C51.239 22.251 55.5724 22.251 59.5 23.5C64.5 25 76 29 82 31C88 33 97.8333 36.1667 101.5 37.5C108.5 40 120.333 42.1667 125.5 43.5C136.5 46.5 147.5 51.1667 152 54C155.245 56.126 158.579 56.126 161.5 54" stroke="#1B475D" stroke-width="3" stroke-linecap="round"/>
+            </svg>
         </div>
 
         <!-- Screen 0.5: Difficulty Selection -->
@@ -401,7 +462,21 @@
 
         <!-- Screen 3: Game Over -->
         <div id="game-over-screen" class="screen">
-            <h1>จบเกม!</h1>
+            <svg class="game-over-monster" viewBox="0 0 200 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g class="thumbs-up">
+                    <path d="M136.219 129.233C144.719 124.733 144.719 109.9 133.719 106.9C122.719 103.9 113.219 110.233 111.719 118.233" stroke="#1C5870" stroke-width="4" stroke-linecap="round"/>
+                    <path d="M68.7188 129.233C60.2188 124.733 60.2188 109.9 71.2188 106.9C82.2188 103.9 91.7188 110.233 93.2188 118.233" stroke="#1C5870" stroke-width="4" stroke-linecap="round"/>
+                </g>
+                <path d="M165.719 86.8997C161.43 35.5663 124.219 -2.43367 76.7188 0.399663C29.2188 3.233 1.43047 50.8997 0.71875 100.9C0.00702813 150.9 29.2188 171.733 76.7188 147.233C124.219 122.733 170.007 138.233 165.719 86.8997Z" fill="#FAD564"/>
+                <ellipse cx="100.5" cy="59.5" rx="28.5" ry="29.5" fill="white"/>
+                <path d="M100 89C115.464 89 128 76.7025 128 61.5C128 46.2975 115.464 34 100 34C84.536 34 72 46.2975 72 61.5C72 76.7025 84.536 89 100 89Z" fill="#1C5870"/>
+                <ellipse cx="90" cy="57" rx="9" ry="10" fill="white"/>
+                <path d="M72 110C72 110 82.5 121 100 121C117.5 121 128 110 128 110" stroke="#1C5870" stroke-width="4" stroke-linecap="round"/>
+                <path d="M79.5 110L85 114.5L92.5 110L100 114.5L107.5 110L115 114.5L120.5 110" stroke="white" stroke-width="3" stroke-linecap="round"/>
+                <path d="M49 20C49 20 44 9.5 50 5C56 0.5 58.5 0.5 58.5 0.5" stroke="#1C5870" stroke-width="4" stroke-linecap="round"/>
+                <path d="M151 20C151 20 156 9.5 150 5C144 0.5 141.5 0.5 141.5 0.5" stroke="#1C5870" stroke-width="4" stroke-linecap="round"/>
+            </svg>
+            <h1 id="game-over-title">Good Job!</h1>
             <h2 id="final-score">คะแนนของคุณ: 0</h2>
             <div id="score-comparison">
                 <p id="first-score"></p>
@@ -525,30 +600,37 @@
 
             async function initAudio() {
                 if (isAudioInitialized || typeof Tone === 'undefined') {
-                     if (typeof Tone === 'undefined' && !isAudioInitialized) {
+                     if (typeof Tone === 'undefined' && !window.toneJsWarningIssued) {
                         console.warn("Tone.js library not loaded. Audio will be disabled.");
+                        window.toneJsWarningIssued = true; 
                      }
                     return;
                 }
-                await Tone.start();
-                
-                uiSynth = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 } }).toDestination();
-                correctSynth = new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination();
-                wrongSynth = new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.01, decay: 0.5, sustain: 0, release: 0.2 } }).toDestination();
-                
-                const bgSynth = new Tone.PolySynth(Tone.Synth, {
-                    oscillator: { type: "amsine", harmonicity: 1.2 },
-                    envelope: { attack: 0.01, decay: 0.3, sustain: 0.1, release: 0.2 }
-                }).toDestination();
-                bgSynth.volume.value = -12;
 
-                bgMusic = new Tone.Sequence((time, note) => {
-                    bgSynth.triggerAttackRelease(note, "8n", time);
-                }, ["C4", "E4", "G4", "B4"], "4n");
-                
-                Tone.Transport.bpm.value = 100;
-                isAudioInitialized = true;
-                console.log("Audio Initialized");
+                try {
+                    await Tone.start();
+                    
+                    uiSynth = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 } }).toDestination();
+                    correctSynth = new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination();
+                    wrongSynth = new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.01, decay: 0.5, sustain: 0, release: 0.2 } }).toDestination();
+                    
+                    const bgSynth = new Tone.PolySynth(Tone.Synth, {
+                        oscillator: { type: "amsine", harmonicity: 1.2 },
+                        envelope: { attack: 0.01, decay: 0.3, sustain: 0.1, release: 0.2 }
+                    }).toDestination();
+                    bgSynth.volume.value = -12;
+
+                    bgMusic = new Tone.Sequence((time, note) => {
+                        bgSynth.triggerAttackRelease(note, "8n", time);
+                    }, ["C4", "E4", "G4", "B4"], "4n");
+                    
+                    Tone.Transport.bpm.value = 100;
+                    isAudioInitialized = true;
+                    console.log("Audio Initialized");
+                } catch(e) {
+                     console.error("Audio initialization failed. Audio will be disabled.", e);
+                     isAudioInitialized = false;
+                }
             }
 
             // --- Navigation ---
@@ -560,7 +642,7 @@
             document.querySelectorAll('.game-select-btn').forEach(btn => {
                 btn.addEventListener('click', async () => {
                     await initAudio();
-                    if (isAudioInitialized) uiSynth.triggerAttackRelease("C5", "8n");
+                    if (isAudioInitialized && uiSynth) uiSynth.triggerAttackRelease("C5", "8n");
                     gameState.mode = btn.dataset.mode;
                     if (gameState.mode === 'guess_property') {
                         showScreen('difficulty');
@@ -574,7 +656,7 @@
             document.querySelectorAll('.difficulty-btn').forEach(btn => {
                 btn.addEventListener('click', async () => {
                     await initAudio();
-                    if (isAudioInitialized) uiSynth.triggerAttackRelease("C5", "8n");
+                    if (isAudioInitialized && uiSynth) uiSynth.triggerAttackRelease("C5", "8n");
                     gameState.difficulty = btn.dataset.difficulty;
                     propertyQuestionsBank = generatePropertyQuestions(gameState.difficulty);
                     startGame();
@@ -706,7 +788,7 @@
                 }
                 
                 updateUI();
-                if (isAudioInitialized && !Tone.getDestination().mute) {
+                if (isAudioInitialized && typeof Tone !== 'undefined' && !Tone.getDestination().mute) {
                     Tone.Transport.start();
                     bgMusic.start(0);
                 }
@@ -715,7 +797,7 @@
             };
             
             const getScoreKeys = () => {
-                let baseKey = `elementia_${gameState.mode}`;
+                let baseKey = `elementalhunter_${gameState.mode}`;
                 if (gameState.mode === 'guess_property') {
                     baseKey += `_${gameState.difficulty}`;
                 }
@@ -728,7 +810,7 @@
             const endGame = () => {
                 clearInterval(timerInterval);
                 clearTimeout(longPressTimer);
-                if(isAudioInitialized) {
+                if(isAudioInitialized && typeof Tone !== 'undefined' && Tone.Transport.state === 'started') {
                     bgMusic.stop();
                     Tone.Transport.stop();
                 }
@@ -873,7 +955,7 @@
                 const targetAtomicNumber = parseInt(targetSlot.dataset.atomicNumber);
 
                 if (gameElementsQueue.length > 0 && targetAtomicNumber === gameElementsQueue[0].atomicNumber) {
-                    if (isAudioInitialized) correctSynth.triggerAttackRelease("G5", "16n");
+                    if (isAudioInitialized && correctSynth) correctSynth.triggerAttackRelease("G5", "16n");
                     score += 100;
                     const correctElement = gameElementsQueue[0];
                     targetSlot.classList.add('correct');
@@ -883,7 +965,7 @@
                     gameElementsQueue.shift();
                     displayNextQuestion();
                 } else {
-                    if (isAudioInitialized) wrongSynth.triggerAttackRelease("C3", "8n");
+                    if (isAudioInitialized && wrongSynth) wrongSynth.triggerAttackRelease("C3", "8n");
                     lives--;
                     showFeedback('✖', false);
                     if (lives <= 0) endGame();
@@ -955,13 +1037,13 @@
             // --- General Functions for Multiple Choice ---
             const handleChoice = (isCorrect, nextQuestionFunc) => {
                 if (isCorrect) {
-                    if (isAudioInitialized) correctSynth.triggerAttackRelease("G5", "16n");
+                    if (isAudioInitialized && correctSynth) correctSynth.triggerAttackRelease("G5", "16n");
                     score += 100;
                     showFeedback('✔', true);
                     gameElementsQueue.shift();
                     nextQuestionFunc();
                 } else {
-                    if (isAudioInitialized) wrongSynth.triggerAttackRelease("C3", "8n");
+                    if (isAudioInitialized && wrongSynth) wrongSynth.triggerAttackRelease("C3", "8n");
                     lives--;
                     showFeedback('✖', false);
                     if (lives <= 0) endGame();
@@ -982,7 +1064,7 @@
             startGameBtn.addEventListener('click', startGame);
             playAgainBtn.addEventListener('click', async () => {
                 await initAudio();
-                if (isAudioInitialized) uiSynth.triggerAttackRelease("C5", "8n");
+                if (isAudioInitialized && uiSynth) uiSynth.triggerAttackRelease("C5", "8n");
                 selectedElements.clear();
                 document.querySelectorAll('.element-choice.selected').forEach(el => el.classList.remove('selected'));
                 elementCountDisplay.textContent = `เลือกแล้ว 0 ธาตุ`;
@@ -991,14 +1073,14 @@
             });
 
             soundToggle.addEventListener('click', () => {
-                if (!isAudioInitialized) return;
+                if (!isAudioInitialized || typeof Tone === 'undefined') return;
                 Tone.getDestination().mute = !Tone.getDestination().mute;
                 soundToggle.classList.toggle('muted', Tone.getDestination().mute);
 
-                if (!Tone.getDestination().mute && Tone.Transport.state !== 'started' && screens.game.classList.contains('active')) {
+                if (!Tone.getDestination().mute && typeof Tone !== 'undefined' && Tone.Transport.state !== 'started' && screens.game.classList.contains('active')) {
                     Tone.Transport.start();
                     bgMusic.start(0);
-                } else if (Tone.getDestination().mute) {
+                } else if (isAudioInitialized && typeof Tone !== 'undefined' && Tone.getDestination().mute) {
                     bgMusic.stop();
                     Tone.Transport.stop();
                 }
