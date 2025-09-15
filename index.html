@@ -400,7 +400,6 @@
 <body>
 
     <div class="app-container">
-        <!-- Screen 0: Main Menu -->
         <div id="main-menu-screen" class="screen active">
             <h1>Elemental Hunter</h1>
             <h2>เลือกโหมดเกม</h2>
@@ -414,7 +413,6 @@
             </svg>
         </div>
 
-        <!-- Screen 0.5: Difficulty Selection -->
         <div id="difficulty-screen" class="screen">
             <h1>เลือกระดับความยาก</h1>
             <button class="menu-btn difficulty-btn" data-difficulty="easy">ง่าย</button>
@@ -423,7 +421,6 @@
         </div>
 
 
-        <!-- Screen 1: Customization -->
         <div id="customization-screen" class="screen">
             <h1 id="customization-title">เลือกธาตุ</h1>
             <h2>เลือกธาตุที่จะเล่น (อย่างน้อย 5 ธาตุ)</h2>
@@ -432,7 +429,6 @@
             <button class="start-button" id="start-game-btn" disabled>เริ่มเกม</button>
         </div>
 
-        <!-- Screen 2: Game -->
         <div id="game-screen" class="screen">
             <div class="game-ui">
                 <div id="lives-display" class="ui-box"></div>
@@ -446,13 +442,11 @@
                 </div>
             </div>
             <div class="game-area">
-                <!-- Container for Game 1 -->
                 <div id="drag-to-atom-container" style="display: none;">
                     <div id="question-display-box"></div>
                     <div id="game-grid"></div>
                     <div id="color-legend"></div>
                 </div>
-                <!-- Container for Game 2 & 3 -->
                 <div id="multiple-choice-container" style="display: none;">
                     <div id="question-area"></div>
                     <div id="options-area"></div>
@@ -460,7 +454,6 @@
             </div>
         </div>
 
-        <!-- Screen 3: Game Over -->
         <div id="game-over-screen" class="screen">
             <svg class="game-over-monster" viewBox="0 0 200 150" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g class="thumbs-up">
@@ -598,15 +591,10 @@
             // --- Audio ---
             let uiSynth, correctSynth, wrongSynth, bgMusic, isAudioInitialized = false;
 
-            async function initAudio() {
-                if (isAudioInitialized || typeof Tone === 'undefined') {
-                     if (typeof Tone === 'undefined' && !window.toneJsWarningIssued) {
-                        console.warn("Tone.js library not loaded. Audio will be disabled.");
-                        window.toneJsWarningIssued = true; 
-                     }
-                    return;
-                }
-
+            const initAudio = async () => {
+                // This function is now called only once on the first user interaction
+                if (isAudioInitialized) return;
+                
                 try {
                     await Tone.start();
                     
@@ -626,12 +614,12 @@
                     
                     Tone.Transport.bpm.value = 100;
                     isAudioInitialized = true;
-                    console.log("Audio Initialized");
+                    console.log("Audio Initialized Successfully!");
                 } catch(e) {
-                     console.error("Audio initialization failed. Audio will be disabled.", e);
+                     console.error("Audio could not be initialized.", e);
                      isAudioInitialized = false;
                 }
-            }
+            };
 
             // --- Navigation ---
             const showScreen = (screenName) => {
@@ -640,9 +628,8 @@
             };
 
             document.querySelectorAll('.game-select-btn').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    await initAudio();
-                    if (isAudioInitialized && uiSynth) uiSynth.triggerAttackRelease("C5", "8n");
+                btn.addEventListener('click', () => {
+                    if (isAudioInitialized) uiSynth.triggerAttackRelease("C5", "8n");
                     gameState.mode = btn.dataset.mode;
                     if (gameState.mode === 'guess_property') {
                         showScreen('difficulty');
@@ -654,9 +641,8 @@
             });
 
             document.querySelectorAll('.difficulty-btn').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    await initAudio();
-                    if (isAudioInitialized && uiSynth) uiSynth.triggerAttackRelease("C5", "8n");
+                btn.addEventListener('click', () => {
+                    if (isAudioInitialized) uiSynth.triggerAttackRelease("C5", "8n");
                     gameState.difficulty = btn.dataset.difficulty;
                     propertyQuestionsBank = generatePropertyQuestions(gameState.difficulty);
                     startGame();
@@ -788,7 +774,7 @@
                 }
                 
                 updateUI();
-                if (isAudioInitialized && typeof Tone !== 'undefined' && !Tone.getDestination().mute) {
+                if (isAudioInitialized && !Tone.getDestination().mute) {
                     Tone.Transport.start();
                     bgMusic.start(0);
                 }
@@ -810,7 +796,7 @@
             const endGame = () => {
                 clearInterval(timerInterval);
                 clearTimeout(longPressTimer);
-                if(isAudioInitialized && typeof Tone !== 'undefined' && Tone.Transport.state === 'started') {
+                if(isAudioInitialized && Tone.Transport.state === 'started') {
                     bgMusic.stop();
                     Tone.Transport.stop();
                 }
@@ -955,7 +941,7 @@
                 const targetAtomicNumber = parseInt(targetSlot.dataset.atomicNumber);
 
                 if (gameElementsQueue.length > 0 && targetAtomicNumber === gameElementsQueue[0].atomicNumber) {
-                    if (isAudioInitialized && correctSynth) correctSynth.triggerAttackRelease("G5", "16n");
+                    if (isAudioInitialized) correctSynth.triggerAttackRelease("G5", "16n");
                     score += 100;
                     const correctElement = gameElementsQueue[0];
                     targetSlot.classList.add('correct');
@@ -965,7 +951,7 @@
                     gameElementsQueue.shift();
                     displayNextQuestion();
                 } else {
-                    if (isAudioInitialized && wrongSynth) wrongSynth.triggerAttackRelease("C3", "8n");
+                    if (isAudioInitialized) wrongSynth.triggerAttackRelease("C3", "8n");
                     lives--;
                     showFeedback('✖', false);
                     if (lives <= 0) endGame();
@@ -1037,13 +1023,13 @@
             // --- General Functions for Multiple Choice ---
             const handleChoice = (isCorrect, nextQuestionFunc) => {
                 if (isCorrect) {
-                    if (isAudioInitialized && correctSynth) correctSynth.triggerAttackRelease("G5", "16n");
+                    if (isAudioInitialized) correctSynth.triggerAttackRelease("G5", "16n");
                     score += 100;
                     showFeedback('✔', true);
                     gameElementsQueue.shift();
                     nextQuestionFunc();
                 } else {
-                    if (isAudioInitialized && wrongSynth) wrongSynth.triggerAttackRelease("C3", "8n");
+                    if (isAudioInitialized) wrongSynth.triggerAttackRelease("C3", "8n");
                     lives--;
                     showFeedback('✖', false);
                     if (lives <= 0) endGame();
@@ -1059,12 +1045,17 @@
                 setTimeout(() => feedback.remove(), 1000);
             };
 
-            // --- Initial Setup ---
+            // --- Initial Setup & Event Listeners ---
+            
+            // Set up a one-time listener to initialize audio on the first user interaction
+            document.body.addEventListener('click', initAudio, { once: true });
+            document.body.addEventListener('touchstart', initAudio, { once: true });
+
             populateCustomizationGrid();
             startGameBtn.addEventListener('click', startGame);
-            playAgainBtn.addEventListener('click', async () => {
-                await initAudio();
-                if (isAudioInitialized && uiSynth) uiSynth.triggerAttackRelease("C5", "8n");
+            
+            playAgainBtn.addEventListener('click', () => {
+                if (isAudioInitialized) uiSynth.triggerAttackRelease("C5", "8n");
                 selectedElements.clear();
                 document.querySelectorAll('.element-choice.selected').forEach(el => el.classList.remove('selected'));
                 elementCountDisplay.textContent = `เลือกแล้ว 0 ธาตุ`;
@@ -1073,20 +1064,23 @@
             });
 
             soundToggle.addEventListener('click', () => {
-                if (!isAudioInitialized || typeof Tone === 'undefined') return;
+                if (!isAudioInitialized) return; // Don't do anything if audio isn't ready
+                
                 Tone.getDestination().mute = !Tone.getDestination().mute;
                 soundToggle.classList.toggle('muted', Tone.getDestination().mute);
 
-                if (!Tone.getDestination().mute && typeof Tone !== 'undefined' && Tone.Transport.state !== 'started' && screens.game.classList.contains('active')) {
-                    Tone.Transport.start();
-                    bgMusic.start(0);
-                } else if (isAudioInitialized && typeof Tone !== 'undefined' && Tone.getDestination().mute) {
-                    bgMusic.stop();
-                    Tone.Transport.stop();
+                // Start/Stop background music based on mute state if the game is active
+                if (screens.game.classList.contains('active')) {
+                    if (!Tone.getDestination().mute && Tone.Transport.state !== 'started') {
+                        Tone.Transport.start();
+                        bgMusic.start(0);
+                    } else if (Tone.getDestination().mute) {
+                        bgMusic.stop();
+                        Tone.Transport.stop();
+                    }
                 }
             });
         });
     </script>
 </body>
 </html>
-
