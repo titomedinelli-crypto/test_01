@@ -10,38 +10,45 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.min.js"></script>
     <style>
         :root {
-            --bg-color: #f8f9fa; 
+            /* New Vibrant Color Palette */
+            --bg-start: #f5f7fa;
+            --bg-end: #c3cfe2;
             --primary-color: #ffffff;
-            --secondary-color: #e9ecef; 
-            --accent-color: #1C5870;
-            --border-color: #dee2e6;   
-            --text-color: #1C5870;
-            --text-light-color: #5a7d6c;
-            --correct-color: #28a745;
-            --wrong-color: #dc3545;
+            --secondary-color: #f8f9fa;
+            --accent-color: #4a90e2;
+            --border-color: #dfe9f3;
+            --text-color: #3a3a3a;
+            --text-light-color: #8c98a8;
+            --correct-color: #7ed321;
+            --wrong-color: #d0021b;
+            --shadow-color: rgba(74, 144, 226, 0.2);
 
-            --btn-color-1: #FAD564;
-            --btn-color-2: #D3DC7C;
-            --btn-color-3: #8EBD9D;
-            
-            /* --- Element Category Colors (Original) --- */
-            --color-alkali-metal: #ffadad;
-            --color-alkaline-earth: #ffd6a5;
-            --color-lanthanide: #fdffb6;
-            --color-actinide: #caffbf;
-            --color-transition-metal: #9bf6ff;
-            --color-metal: #a0c4ff;
-            --color-metalloid: #bdb2ff;
-            --color-nonmetal: #ffc6ff;
-            --color-halogen: #fffffc;
-            --color-noble-gas: #e4e1e1;
+            /* Button Gradients */
+            --btn-grad-1-start: #ffdde1;
+            --btn-grad-1-end: #ee9ca7;
+            --btn-grad-2-start: #f6d365;
+            --btn-grad-2-end: #fda085;
+            --btn-grad-3-start: #abe9cd;
+            --btn-grad-3-end: #3eadcf;
+
+            /* --- Element Category Colors (Vibrant) --- */
+            --color-alkali-metal: #ff6b6b;
+            --color-alkaline-earth: #ff9f43;
+            --color-lanthanide: #ffeaa7;
+            --color-actinide: #a29bfe;
+            --color-transition-metal: #74b9ff;
+            --color-metal: #55efc4;
+            --color-metalloid: #81ecec;
+            --color-nonmetal: #00cec9;
+            --color-halogen: #fab1a0;
+            --color-noble-gas: #dfe6e9;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'IBM Plex Sans Thai', sans-serif;
-            background-color: var(--bg-color);
+            background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
             color: var(--text-color);
             display: flex;
             justify-content: center;
@@ -55,14 +62,15 @@
             max-width: 1400px;
             height: 95vh;
             max-height: 900px;
-            background-color: var(--primary-color);
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            border: 1px solid #ccc;
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            box-shadow: 0 20px 60px var(--shadow-color), inset 0 0 20px rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.5);
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            position: relative; /* For tooltip positioning */
+            position: relative; 
         }
 
         .screen {
@@ -73,102 +81,198 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            position: relative;
+            z-index: 1;
         }
 
-        .screen.active { display: flex; }
+        .screen.active { 
+            display: flex;
+            animation: screen-fade-in 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) both;
+        }
         
+        .screen-header {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            z-index: 10;
+        }
+
         h1 { 
             font-family: 'Playfair Display', serif;
-            font-size: 3rem; 
-            color: var(--text-color); 
+            font-size: clamp(3.2rem, 8vw, 5rem);
+            color: var(--accent-color); 
             margin-bottom: 10px; 
+            text-shadow: 1px 1px 0 #fff, 2px 2px 5px var(--shadow-color);
         }
-        h2 { font-size: 1.2rem; color: var(--text-color); opacity: 0.8; margin-bottom: 20px; }
+        h2 { 
+            font-size: clamp(1rem, 2vw, 1.2rem); 
+            color: var(--text-color); 
+            opacity: 0.8; 
+            margin-bottom: 20px; 
+            text-align: center;
+        }
 
         /* --- Main Menu & Difficulty Screens --- */
-        #main-menu-screen {
+        #main-menu-screen { justify-content: center; }
+        #main-menu-screen, #difficulty-screen { gap: 20px; }
+        
+        .menu-btn, .start-button, .option-btn {
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 5px 20px var(--shadow-color), inset 0 -4px 0 rgba(0,0,0,0.1);
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
             position: relative;
-            justify-content: center;
+            overflow: hidden;
         }
-        #main-menu-screen, #difficulty-screen { gap: 15px; }
+
+        .menu-btn:hover, .start-button:hover, .option-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px var(--shadow-color), inset 0 -4px 0 rgba(0,0,0,0.1);
+        }
+
+        .menu-btn:active, .start-button:active, .option-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 10px var(--shadow-color), inset 0 -2px 0 rgba(0,0,0,0.1);
+        }
+        
+        .menu-btn::after, .start-button::after {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 70%);
+            transform: scale(0);
+            transition: transform 0.5s ease;
+        }
+
+        .menu-btn:hover::after, .start-button:hover::after {
+            transform: scale(2);
+        }
+
+
         .menu-btn {
             padding: 20px 40px;
-            font-size: 1.3rem;
+            font-size: 1.4rem;
             width: 80%;
-            max-width: 400px;
-            font-weight: bold;
-            color: var(--accent-color);
-            border: 2px solid var(--accent-color);
-            border-radius: 25px; /* More rounded */
-            cursor: pointer;
-            transition: all 0.2s ease;
+            max-width: 450px;
+            color: white;
             z-index: 5;
         }
-        .menu-btn:hover {
-            color: white;
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(28, 88, 112, 0.3);
-        }
-        #btn-game-1 { background-color: var(--btn-color-1); border-color: #eab637; }
-        #btn-game-2 { background-color: var(--btn-color-2); border-color: #b7c05c; }
-        #btn-game-3 { background-color: var(--btn-color-3); border-color: #72a182; }
-        #btn-game-1:hover { background-color: #eab637; }
-        #btn-game-2:hover { background-color: #b7c05c; }
-        #btn-game-3:hover { background-color: #72a182; }
+
+        #btn-game-1 { background-image: linear-gradient(120deg, var(--btn-grad-1-start), var(--btn-grad-1-end)); }
+        #btn-game-2 { background-image: linear-gradient(120deg, var(--btn-grad-2-start), var(--btn-grad-2-end)); }
+        #btn-game-3 { background-image: linear-gradient(120deg, var(--btn-grad-3-start), var(--btn-grad-3-end)); }
 
         .main-menu-monster {
             position: absolute;
             bottom: -20px;
             right: -15px;
-            width: 250px;
+            width: clamp(200px, 20vw, 280px);
             height: auto;
-            z-index: 1;
+            z-index: 2;
             animation: bobbing 3s ease-in-out infinite;
         }
+        
+        .main-menu-helper {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: clamp(120px, 15vw, 180px);
+            height: auto;
+            z-index: 2;
+            animation: bobbing 3.5s ease-in-out infinite;
+        }
+
+        .helper-character {
+            position: absolute;
+            bottom: 5px;
+            right: 10px;
+            width: 120px;
+            z-index: 2;
+            animation: bobbing 2.5s ease-in-out infinite alternate;
+        }
+        #difficulty-screen .helper-character {
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+        }
+
 
         /* --- Customization Screen --- */
-        #customization-screen p { margin-bottom: 15px; color: var(--text-light-color); }
-        .element-selector-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-            gap: 10px;
+        #customization-screen { justify-content: flex-start; overflow-y: auto; padding-bottom: 20px; }
+        #customization-screen h1 { font-size: clamp(2rem, 4vw, 2.5rem); margin: 0; }
+        #customization-screen h2 { font-size: clamp(0.9rem, 1.5vw, 1rem); margin-bottom: 5px; }
+        #customization-screen p { margin-bottom: 5px; color: var(--text-color); font-size: 1.1rem; }
+        
+        #periodic-table-wrapper {
             width: 100%;
-            max-height: 60%;
-            overflow-y: auto;
-            padding: 10px;
-            background-color: #f8f9fa;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            border: 1px solid var(--border-color);
+            max-width: 1200px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 5px 0;
+            margin-bottom: 10px;
         }
+
+        #periodic-table-grid {
+            display: grid;
+            grid-template-columns: repeat(18, minmax(0, 1fr));
+            grid-template-rows: repeat(10, minmax(0, 1fr));
+            gap: clamp(2px, 0.5vw, 4px);
+            width: 100%;
+            height: auto;
+            max-height: 500px;
+            aspect-ratio: 18 / 10;
+        }
+
         .element-choice {
-            background-color: #fff;
+            background-color: var(--secondary-color);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 8px 5px;
+            border-radius: 4px;
+            padding: 2px;
             cursor: pointer;
             transition: all 0.2s ease;
             text-align: center;
             font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            line-height: 1.1;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
-        .element-choice:hover { transform: translateY(-3px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .element-choice.selected { background-color: var(--accent-color); color: white; border-color: var(--accent-color); }
-        .element-choice .symbol { font-size: 1.4rem; }
-        .element-choice .number { font-size: 0.8rem; opacity: 0.7; }
+        .element-choice:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .element-choice.selected { background-color: var(--accent-color); color: white; border-color: var(--accent-color); transform: scale(1.1); box-shadow: 0 5px 15px var(--shadow-color); }
+        .element-choice .symbol { font-size: clamp(0.7rem, 1.5vw, 1.1rem); }
+        .element-choice .number { font-size: clamp(0.5rem, 1vw, 0.7rem); opacity: 0.7; }
+        
+        .pt-placeholder {
+            border: 2px dashed var(--border-color);
+            border-radius: 4px;
+            font-size: clamp(0.6rem, 1.2vw, 0.9rem);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-light-color);
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
         .start-button {
             padding: 15px 40px;
             font-size: 1.2rem;
-            font-weight: bold;
             background-color: var(--accent-color);
             color: white;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 5px 15px rgba(28, 88, 112, 0.3);
+            flex-shrink: 0;
         }
-        .start-button:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(28, 88, 112, 0.4); }
-        .start-button:disabled { background-color: #aaa; cursor: not-allowed; box-shadow: none; transform: none; }
+        .start-button:disabled { background-color: #aaa; color: #eee; cursor: not-allowed; box-shadow: 0 4px 15px rgba(0,0,0,0.1), inset 0 -4px 0 rgba(0,0,0,0.15); transform: none; }
 
         /* --- Game Screen --- */
         #game-screen { justify-content: flex-start; }
@@ -183,259 +287,310 @@
         }
         .ui-box { font-size: 1.8rem; font-weight: bold; text-align: center; }
         #lives-display { display: flex; gap: 10px; align-items: center; }
-        .life-icon-svg {
-            width: 30px;
-            height: 30px;
-            transition: all 0.3s ease;
-        }
-        .life-icon-svg path {
-            fill: white;
-            stroke: var(--text-color);
-            stroke-width: 1.5;
-        }
-        .life-icon-svg.lost {
-            transform: scale(0.8);
-        }
-        .life-icon-svg.lost path {
-            fill: var(--secondary-color);
-            stroke: var(--border-color);
-        }
-        #sound-toggle {
-            cursor: pointer;
-            width: 30px;
-            height: 30px;
-        }
-        #sound-toggle .line {
-            stroke: var(--wrong-color);
-            stroke-width: 2;
-            display: none;
-        }
-        #sound-toggle.muted .line {
-            display: block;
-        }
-
-        .game-area { width: 100%; flex-grow: 1; display: flex; flex-direction: column; }
+        .life-icon-svg { width: 35px; height: 35px; transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.2)); }
+        .life-icon-svg path { fill: #ff7b7b; stroke: #c44a4a; stroke-width: 1; }
+        .life-icon-svg.lost { transform: scale(0) rotate(180deg); opacity: 0; }
         
-        /* Game Mode 1: Click to Place */
-        #drag-to-atom-container { height: 100%; width: 100%; display: flex; flex-direction: column; align-items: center; }
-        #question-display-box {
-            width: 100%;
-            min-height: 100px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-shrink: 0;
-        }
+        .ui-icon-btn { cursor: pointer; width: 30px; height: 30px; color: var(--text-color); transition: color 0.2s ease, transform 0.2s ease; }
+        .ui-icon-btn:hover { color: var(--accent-color); transform: scale(1.15) rotate(-10deg); }
+        #sound-toggle .line { stroke: var(--wrong-color); stroke-width: 2; display: none; }
+        #sound-toggle.muted .line { display: block; }
+
+        .game-area { width: 100%; flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+        
+        #drag-to-atom-container { height: 100%; width: 100%; display: flex; flex-direction: column; align-items: center; overflow-y: auto; padding-bottom: 20px; }
+        #question-display-box { width: 100%; min-height: 110px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
         .question-card {
-            width: 110px;
-            height: 110px;
-            background-color: #fff;
-            border: 3px solid var(--text-color);
-            border-radius: 15px;
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #ffffff, #f1f3f5);
+            border: 3px solid transparent;
+            border-image: linear-gradient(45deg, var(--btn-grad-2-start), var(--btn-grad-3-end)) 1;
+            border-radius: 20px;
             user-select: none;
             text-align: center;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px var(--shadow-color);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
         }
-        .question-card .symbol { font-size: 2.5rem; font-weight: bold; }
-        .question-card .name { font-size: 0.8rem; color: var(--text-light-color); }
+        .question-card .symbol { font-size: 3rem; font-weight: bold; }
+        .question-card .name { font-size: 0.9rem; color: var(--text-light-color); }
 
-        #game-grid {
-            display: grid;
-            grid-template-columns: repeat(18, minmax(0, 1fr));
-            grid-template-rows: repeat(10, minmax(0, 1fr));
-            gap: 4px;
-            width: 100%;
-            flex-grow: 1;
-            padding: 5px;
-        }
-        .grid-slot {
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            font-size: clamp(0.6rem, 1.2vw, 1rem);
-            font-weight: bold;
-            transition: all 0.2s ease;
-            position: relative;
-            aspect-ratio: 1 / 1;
-            grid-column-start: var(--col);
-            grid-row-start: var(--row);
-            cursor: pointer;
-        }
-        .grid-slot:not([class*="category-"]) {
-            background-color: var(--secondary-color);
-        }
-        .grid-slot:hover {
-            border-color: var(--accent-color);
-            transform: scale(1.05);
-            z-index: 10;
-        }
-        .grid-slot.correct { 
-            border-style: solid;
-            border-color: var(--correct-color);
-            background-color: var(--correct-color) !important; /* Override category color */
-            color: white;
-            animation: pulse-correct 0.5s;
-            cursor: default;
-        }
+        #game-grid { display: grid; grid-template-columns: repeat(18, minmax(0, 1fr)); grid-template-rows: repeat(10, minmax(0, 1fr)); gap: 0; width: 100%; min-height: 550px; padding: 5px; }
+        .grid-slot { border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 2px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: clamp(0.6rem, 1.2vw, 1rem); font-weight: bold; transition: all 0.2s ease; position: relative; aspect-ratio: 1 / 1; grid-column-start: var(--col); grid-row-start: var(--row); cursor: pointer; }
+        .grid-slot:not([class*="category-"]) { background-color: rgba(233, 236, 239, 0.5); }
+        .grid-slot:hover { transform: scale(1.1); z-index: 10; border-color: var(--accent-color); }
+        .grid-slot.correct { background-color: var(--correct-color) !important; color: white; animation: pulse-correct 0.5s; cursor: default; border-color: var(--correct-color); }
         .grid-slot.correct .element-symbol { font-size: clamp(0.8rem, 1.5vw, 1.2rem); }
         .grid-slot.correct .element-name { font-size: clamp(0.4rem, 0.8vw, 0.5rem); font-weight: normal; }
         .placeholder-slot { background-color: #fff; border: 2px dashed; font-size: 0.8em; color: var(--text-light-color); cursor: default; }
         .placeholder-slot:hover { transform: none; }
-        .placeholder-lanthanide { border-color: var(--lanthanide-color); }
-        .placeholder-actinide { border-color: var(--actinide-color); }
+        .placeholder-lanthanide { border-color: var(--color-lanthanide); }
+        .placeholder-actinide { border-color: var(--color-actinide); }
 
-        /* Color classes */
-        .category-alkali-metal { background-color: var(--color-alkali-metal); }
-        .category-alkaline-earth { background-color: var(--color-alkaline-earth); }
-        .category-lanthanide { background-color: var(--color-lanthanide); }
-        .category-actinide { background-color: var(--color-actinide); }
-        .category-transition-metal { background-color: var(--color-transition-metal); }
-        .category-metal { background-color: var(--color-metal); }
-        .category-metalloid { background-color: var(--color-metalloid); }
-        .category-nonmetal { background-color: var(--color-nonmetal); }
-        .category-halogen { background-color: var(--color-halogen); }
-        .category-noble-gas { background-color: var(--color-noble-gas); }
+        .category-alkali-metal { background-color: var(--color-alkali-metal); } .category-alkaline-earth { background-color: var(--color-alkaline-earth); } .category-lanthanide { background-color: var(--color-lanthanide); } .category-actinide { background-color: var(--color-actinide); } .category-transition-metal { background-color: var(--color-transition-metal); } .category-metal { background-color: var(--color-metal); } .category-metalloid { background-color: var(--color-metalloid); } .category-nonmetal { background-color: var(--color-nonmetal); } .category-halogen { background-color: var(--color-halogen); } .category-noble-gas { background-color: var(--color-noble-gas); }
         
-        #color-legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px 12px;
-            justify-content: center;
-            padding: 5px;
-            width: 100%;
-            margin-top: 5px;
-            flex-shrink: 0;
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 0.7rem;
-        }
-        .legend-color-box {
-            width: 12px;
-            height: 12px;
-            border: 1px solid #ccc;
-            border-radius: 3px;
-        }
+        #color-legend { display: flex; flex-wrap: wrap; gap: 8px 12px; justify-content: center; padding: 5px; width: 100%; margin-top: 5px; flex-shrink: 0; }
+        .legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.7rem; }
+        .legend-color-box { width: 12px; height: 12px; border: 1px solid #ccc; border-radius: 3px; }
 
-
-        /* Game Mode 2 & 3: Multiple Choice */
         #multiple-choice-container { height: 100%; width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; }
         #question-area { font-size: 2rem; text-align: center; margin-bottom: 20px; }
         #question-area .element-name { font-size: 3rem; font-weight: bold; color: var(--accent-color); }
         #options-area { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
-        .option-btn { padding: 20px; min-width: 150px; font-size: 1.5rem; font-weight: bold; background-color: #fff; border: 2px solid var(--border-color); border-radius: 10px; cursor: pointer; transition: all 0.2s ease; }
-        .option-btn:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-
-        /* Feedback & Game Over */
+        .option-btn { padding: 20px; min-width: 150px; font-size: 1.5rem; background-color: #fff; border: 2px solid var(--border-color); border-radius: 10px; }
+        
+        /* --- Game Over --- */
         #game-over-screen { gap: 15px; }
-        .game-over-monster {
-            width: 200px;
-            height: auto;
-            margin-bottom: -10px;
-        }
-        .game-over-monster .thumbs-up {
-            animation: thumbs-up-bob 2s ease-in-out infinite;
-            transform-origin: bottom center;
-        }
-
-        #game-over-title {
-            font-family: 'Mali', cursive;
-            font-size: 2.5rem;
-            color: var(--text-color);
-            margin: 0;
-        }
-
+        .game-over-monster { width: 220px; height: auto; margin-bottom: -10px; }
+        .game-over-monster .thumbs-up { animation: thumbs-up-bob 2s ease-in-out infinite; transform-origin: bottom center; }
+        #game-over-title { font-family: 'Mali', cursive; font-size: 3rem; color: var(--accent-color); margin: 0; }
         #final-score { margin-bottom: 0; }
-        #score-comparison {
-            display: flex;
-            gap: 30px;
-            font-size: 1rem;
-            margin-bottom: 15px;
-        }
+        #score-comparison { display: flex; gap: 30px; font-size: 1rem; margin-bottom: 15px; }
         #first-score { color: var(--text-light-color); }
         #high-score { color: var(--accent-color); font-weight: bold; }
-        
-        #category-tooltip {
+        .game-over-buttons { display: flex; gap: 15px; margin-top: 20px; width: 90%; max-width: 500px; justify-content: center; }
+        .game-over-buttons .start-button { flex: 1; }
+        #home-btn-game-over { background-color: var(--secondary-color); color: var(--text-color); }
+
+        /* --- Decorations & Feedback --- */
+        .cheerleader-atom {
             position: absolute;
-            display: none;
-            background-color: #333;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            z-index: 1000;
-            pointer-events: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            transform: translateX(-50%);
+            bottom: 10px;
+            left: 10px;
+            width: 90px;
+            z-index: 20;
+            animation: bobbing 4s ease-in-out infinite;
         }
 
-        .feedback { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 5rem; font-weight: bold; opacity: 0; animation: fade-out 1s; z-index: 100; }
+        .sparkle-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #fff, 0 0 20px var(--btn-grad-2-start), 0 0 30px var(--btn-grad-2-end);
+            animation: sparkle-anim 3s infinite ease-in-out;
+            opacity: 0;
+        }
+
+        .sparkle:nth-child(1) { top: 20%; left: 15%; animation-delay: 0s; }
+        .sparkle:nth-child(2) { top: 50%; left: 80%; animation-delay: 0.5s; width: 10px; height: 10px; }
+        .sparkle:nth-child(3) { top: 80%; left: 10%; animation-delay: 1s; }
+        .sparkle:nth-child(4) { top: 10%; left: 90%; animation-delay: 1.5s; width: 6px; height: 6px; }
+        .sparkle:nth-child(5) { top: 65%; left: 30%; animation-delay: 2s; }
+
+        @keyframes sparkle-anim {
+            0%, 100% { opacity: 0; transform: scale(0.5) translateY(0); }
+            50% { opacity: 1; transform: scale(1.2) translateY(-10px); }
+        }
+
+        .confetti {
+            position: absolute;
+            z-index: 1;
+            top: -20px;
+            animation: fall linear forwards;
+        }
+        #category-tooltip { position: absolute; display: none; background-color: #333; color: white; padding: 8px 12px; border-radius: 6px; font-size: 0.9rem; z-index: 1000; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transform: translateX(-50%); }
+        .feedback { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 5rem; font-weight: bold; opacity: 0; animation: fade-out 1s; z-index: 100; text-shadow: 3px 3px 5px var(--shadow-color); }
         .feedback.correct { color: var(--correct-color); }
         .feedback.wrong { color: var(--wrong-color); animation: fade-shake 1s; }
         
-        @keyframes bobbing {
-            0% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0); }
-        }
-         @keyframes thumbs-up-bob {
-            0% { transform: rotate(-5deg); }
-            50% { transform: rotate(5deg); }
-            100% { transform: rotate(-5deg); }
-        }
+        @keyframes bobbing { 0% { transform: translateY(0); } 50% { transform: translateY(-15px); } 100% { transform: translateY(0); } }
+        @keyframes thumbs-up-bob { 0% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } 100% { transform: rotate(-5deg); } }
         @keyframes fade-out { from { opacity: 1; transform: translate(-50%, -50%) scale(1); } to { opacity: 0; transform: translate(-50%, -50%) scale(1.5); } }
         @keyframes fade-shake { 0% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 10%, 30% { transform: translate(-55%, -50%) rotate(-5deg); } 20%, 40% { transform: translate(-45%, -50%) rotate(5deg); } 50% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); } }
-        @keyframes pulse-correct { from { transform: scale(1); } 50% { transform: scale(1.05); } to { transform: scale(1); } }
+        @keyframes pulse-correct { from { transform: scale(1); } 50% { transform: scale(1.1); box-shadow: 0 0 15px var(--correct-color); } to { transform: scale(1); } }
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+        @keyframes screen-fade-in {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
     </style>
 </head>
 <body>
+    <svg width="0" height="0" style="position:absolute;">
+        <defs>
+            <radialGradient id="grad-atom" cx="50%" cy="50%" r="50%" fx="30%" fy="30%">
+                <stop offset="0%" style="stop-color:rgb(220, 235, 255);stop-opacity:1" />
+                <stop offset="100%" style="stop-color:rgb(160, 196, 255);stop-opacity:1" />
+            </radialGradient>
+            <radialGradient id="grad-monster-yellow" cx="50%" cy="50%" r="50%" fx="30%" fy="30%">
+                <stop offset="0%" style="stop-color:rgb(255, 235, 173);stop-opacity:1" />
+                <stop offset="100%" style="stop-color:rgb(250, 213, 100);stop-opacity:1" />
+            </radialGradient>
+            <filter id="glow">
+                <feGaussianBlur stdDeviation="3.5" result="coloredBlur"/>
+                <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+        </defs>
+    </svg>
 
     <div class="app-container">
         <div id="main-menu-screen" class="screen active">
+             <div class="sparkle-container">
+                <div class="sparkle"></div>
+                <div class="sparkle"></div>
+                <div class="sparkle"></div>
+                <div class="sparkle"></div>
+                <div class="sparkle"></div>
+            </div>
             <h1>Elemental Hunter</h1>
             <h2>เลือกโหมดเกม</h2>
             <button id="btn-game-1" class="menu-btn game-select-btn" data-mode="drag_to_atom">เกมทายเลขอะตอม</button>
             <button id="btn-game-2" class="menu-btn game-select-btn" data-mode="guess_symbol">เกมทายตัวย่อธาตุ</button>
             <button id="btn-game-3" class="menu-btn game-select-btn" data-mode="guess_property">เกมทายคุณสมบัติ</button>
-            <svg class="main-menu-monster" viewBox="0 0 162 122" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M125.798 121.325C124.789 119.533 123.018 117.433 121.034 116.325C113.88 112.228 102.583 102.738 98.7984 96.1251C95.222 89.8451 94.6293 81.652 94.7984 74.3251C94.9844 66.277 96.0028 57.5192 101.498 51.5251C107.781 44.6468 114.908 43.1537 122.798 44.1251C128.603 44.8211 133.433 47.7951 137.798 51.5251C142.062 55.1584 146.401 60.8528 148.298 67.3251C149.522 71.5541 150.119 76.529 149.498 80.9251C148.835 85.6021 146.992 90.6407 144.398 94.5251C138.804 102.946 131.503 111.439 125.798 121.325Z" fill="#FAD564"/>
-                <path d="M35.1984 39.5251C35.9221 38.3073 37.0674 36.8123 38.4984 35.9251C42.8594 33.1971 49.3374 27.6521 52.5984 23.3251C55.6664 19.2311 56.6334 14.5021 54.8984 9.92508C53.0234 5.01308 48.0124 1.79408 42.9984 1.32508C36.9144 0.749082 30.6854 2.87108 25.5984 6.72508C20.6134 10.4951 15.6884 16.4801 13.5984 23.3251C12.2104 27.7941 11.8314 33.0071 13.5984 37.7251C15.5224 42.8421 20.3504 47.7801 25.5984 51.5251C31.2824 55.5911 37.9574 58.0771 44.1984 57.5251" id="Vector-2" />
+            
+             <svg class="main-menu-helper" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <g filter="url(#glow)">
+                    <circle cx="50" cy="50" r="25" fill="url(#grad-atom)" />
+                    <circle cx="50" cy="50" r="22" fill="#fff"/>
+                    <!-- Face -->
+                    <circle cx="42" cy="45" r="3" fill="#3a3a3a"/>
+                    <circle cx="58" cy="45" r="3" fill="#3a3a3a"/>
+                    <path d="M 45 55 Q 50 60, 55 55" stroke="#3a3a3a" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    
+                    <!-- Animated Electrons -->
+                    <g style="transform-origin: 50px 50px;">
+                        <circle cx="50" cy="50" r="4" fill="#ff6b6b">
+                            <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="4s" repeatCount="indefinite" />
+                        </circle>
+                    </g>
+                    <g style="transform-origin: 50px 50px;">
+                        <circle cx="50" cy="10" r="4" fill="#74b9ff">
+                             <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="2.5s" repeatCount="indefinite" />
+                        </circle>
+                    </g>
+                     <g style="transform-origin: 50px 50px;">
+                        <circle cx="15" cy="30" r="4" fill="#55efc4">
+                             <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="3s" repeatCount="indefinite" />
+                        </circle>
+                    </g>
+                </g>
+            </svg>
+
+            <svg class="main-menu-monster" viewBox="0 0 162 122" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(3px 5px 8px var(--shadow-color));">
+                <path d="M125.798 121.325C124.789 119.533 123.018 117.433 121.034 116.325C113.88 112.228 102.583 102.738 98.7984 96.1251C95.222 89.8451 94.6293 81.652 94.7984 74.3251C94.9844 66.277 96.0028 57.5192 101.498 51.5251C107.781 44.6468 114.908 43.1537 122.798 44.1251C128.603 44.8211 133.433 47.7951 137.798 51.5251C142.062 55.1584 146.401 60.8528 148.298 67.3251C149.522 71.5541 150.119 76.529 149.498 80.9251C148.835 85.6021 146.992 90.6407 144.398 94.5251C138.804 102.946 131.503 111.439 125.798 121.325Z" fill="url(#grad-monster-yellow)"/>
+                <path d="M35.1984 39.5251C35.9221 38.3073 37.0674 36.8123 38.4984 35.9251C42.8594 33.1971 49.3374 27.6521 52.5984 23.3251C55.6664 19.2311 56.6334 14.5021 54.8984 9.92508C53.0234 5.01308 48.0124 1.79408 42.9984 1.32508C36.9144 0.749082 30.6854 2.87108 25.5984 6.72508C20.6134 10.4951 15.6884 16.4801 13.5984 23.3251C12.2104 27.7941 11.8314 33.0071 13.5984 37.7251C15.5224 42.8421 20.3504 47.7801 25.5984 51.5251C31.2824 55.5911 37.9574 58.0771 44.1984 57.5251" id="Vector-2" fill="#8EBD9D"/>
                 <path d="M161.5 59.5C161.5 61.5 159.667 69.8333 158.5 72.5C155.5 79.5 149.667 86.8333 145.5 90.5C136.5 98.5 125.667 111.333 121.5 116C117.833 120.167 113.833 127.333 112.5 129.5C111.167 131.667 106.833 138.333 105.5 139.5C97.8333 146.167 81.3333 150.333 72 150.5C62.6667 150.667 47.8333 146.167 40.5 141.5C31.3333 135.667 13.3333 119.333 8.5 112.5C-1.5 98.5 -1 83.5 2 73C5.5 61 14.5 44 25.5 35.5C31.5 30.5 40.5 25.5 47 23.5C51.239 22.251 55.5724 22.251 59.5 23.5C64.5 25 76 29 82 31C88 33 97.8333 36.1667 101.5 37.5C108.5 40 120.333 42.1667 125.5 43.5C136.5 46.5 147.5 51.1667 152 54C155.245 56.126 158.579 56.126 161.5 54" stroke="#1B475D" stroke-width="3" stroke-linecap="round"/>
             </svg>
         </div>
 
         <div id="difficulty-screen" class="screen">
+            <div class="screen-header">
+                <svg id="home-btn-difficulty" class="ui-icon-btn" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3L2 12h3v8h5z"/>
+                </svg>
+            </div>
             <h1>เลือกระดับความยาก</h1>
-            <button class="menu-btn difficulty-btn" data-difficulty="easy">ง่าย</button>
-            <button class="menu-btn difficulty-btn" data-difficulty="medium">กลาง</button>
-            <button class="menu-btn difficulty-btn" data-difficulty="hard">ยาก</button>
+            <button class="menu-btn difficulty-btn" data-difficulty="easy" style="background-image: linear-gradient(120deg, var(--btn-grad-3-start), var(--btn-grad-3-end));">ง่าย</button>
+            <button class="menu-btn difficulty-btn" data-difficulty="medium" style="background-image: linear-gradient(120deg, var(--btn-grad-2-start), var(--btn-grad-2-end));">กลาง</button>
+            <button class="menu-btn difficulty-btn" data-difficulty="hard" style="background-image: linear-gradient(120deg, var(--btn-grad-1-start), var(--btn-grad-1-end));">ยาก</button>
+            <svg class="helper-character" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                 <g filter="url(#glow)">
+                    <circle cx="50" cy="50" r="25" fill="url(#grad-atom)" />
+                    <circle cx="50" cy="50" r="22" fill="#fff"/>
+                    <!-- Face -->
+                    <circle cx="42" cy="45" r="3" fill="#3a3a3a"/>
+                    <circle cx="58" cy="45" r="3" fill="#3a3a3a"/>
+                    <path d="M 45 55 Q 50 60, 55 55" stroke="#3a3a3a" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    
+                    <!-- Animated Electrons -->
+                     <g style="transform-origin: 50px 50px;">
+                        <circle cx="50" cy="50" r="4" fill="#ff6b6b">
+                            <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="4s" repeatCount="indefinite" />
+                        </circle>
+                    </g>
+                    <g style="transform-origin: 50px 50px;">
+                        <circle cx="50" cy="10" r="4" fill="#74b9ff">
+                             <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="2.5s" repeatCount="indefinite" />
+                        </circle>
+                    </g>
+                     <g style="transform-origin: 50px 50px;">
+                        <circle cx="15" cy="30" r="4" fill="#55efc4">
+                             <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="3s" repeatCount="indefinite" />
+                        </circle>
+                    </g>
+                </g>
+            </svg>
         </div>
 
-
         <div id="customization-screen" class="screen">
+            <div class="screen-header">
+                <svg id="home-btn-customization" class="ui-icon-btn" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3L2 12h3v8h5z"/>
+                </svg>
+            </div>
             <h1 id="customization-title">เลือกธาตุ</h1>
             <h2>เลือกธาตุที่จะเล่น (อย่างน้อย 5 ธาตุ)</h2>
             <p id="element-count">เลือกแล้ว 0 ธาตุ</p>
-            <div class="element-selector-grid" id="element-selector-grid"></div>
+            <div id="periodic-table-wrapper">
+                <div id="periodic-table-grid"></div>
+            </div>
             <button class="start-button" id="start-game-btn" disabled>เริ่มเกม</button>
+            <svg class="helper-character" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                 <g filter="url(#glow)">
+                    <circle cx="50" cy="50" r="25" fill="url(#grad-atom)" />
+                    <circle cx="50" cy="50" r="22" fill="#fff"/>
+                    <!-- Face -->
+                    <circle cx="42" cy="45" r="3" fill="#3a3a3a"/>
+                    <circle cx="58" cy="45" r="3" fill="#3a3a3a"/>
+                    <path d="M 45 55 Q 50 60, 55 55" stroke="#3a3a3a" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    
+                    <!-- Animated Electrons -->
+                     <g style="transform-origin: 50px 50px;">
+                        <circle cx="50" cy="50" r="4" fill="#ff6b6b">
+                            <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="4s" repeatCount="indefinite" />
+                        </circle>
+                    </g>
+                    <g style="transform-origin: 50px 50px;">
+                        <circle cx="50" cy="10" r="4" fill="#74b9ff">
+                             <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="2.5s" repeatCount="indefinite" />
+                        </circle>
+                    </g>
+                     <g style="transform-origin: 50px 50px;">
+                        <circle cx="15" cy="30" r="4" fill="#55efc4">
+                             <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="3s" repeatCount="indefinite" />
+                        </circle>
+                    </g>
+                </g>
+            </svg>
         </div>
 
         <div id="game-screen" class="screen">
             <div class="game-ui">
-                <div id="lives-display" class="ui-box"></div>
+                <div class="ui-box" style="display: flex; align-items: center; gap: 15px;">
+                     <svg id="home-btn" class="ui-icon-btn" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3L2 12h3v8h5z"/>
+                    </svg>
+                    <div id="lives-display"></div>
+                </div>
                 <div id="timer-display" class="ui-box">01:30</div>
                 <div class="ui-box" style="display: flex; align-items: center; gap: 20px;">
                     <div id="score-display" style="font-size: 1.5rem;">Score: 0</div>
-                    <svg id="sound-toggle" viewBox="0 0 24 24">
+                    <svg id="sound-toggle" class="ui-icon-btn" viewBox="0 0 24 24">
                         <path fill="currentColor" d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.84 14,18.7V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.76 16.5,12M3,9V15H7L12,20V4L7,9H3Z" />
                         <line class="line" x1="1" y1="1" x2="23" y2="23" />
                     </svg>
@@ -452,20 +607,38 @@
                     <div id="options-area"></div>
                 </div>
             </div>
+            <svg class="cheerleader-atom" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <g filter="url(#glow)">
+                    <circle cx="50" cy="50" r="25" fill="url(#grad-atom)" />
+                    <circle cx="50" cy="50" r="22" fill="#fff"/>
+                    <circle cx="42" cy="45" r="3" fill="#3a3a3a"/>
+                    <circle cx="58" cy="45" r="3" fill="#3a3a3a"/>
+                    <path d="M 45 58 Q 50 52, 55 58" stroke="#3a3a3a" stroke-width="2" fill="none" stroke-linecap="round"/>
+                </g>
+            </svg>
         </div>
 
         <div id="game-over-screen" class="screen">
-            <svg class="game-over-monster" viewBox="0 0 200 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg class="game-over-monster" viewBox="0 0 200 150" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(3px 5px 8px var(--shadow-color));">
                 <g class="thumbs-up">
                     <path d="M136.219 129.233C144.719 124.733 144.719 109.9 133.719 106.9C122.719 103.9 113.219 110.233 111.719 118.233" stroke="#1C5870" stroke-width="4" stroke-linecap="round"/>
                     <path d="M68.7188 129.233C60.2188 124.733 60.2188 109.9 71.2188 106.9C82.2188 103.9 91.7188 110.233 93.2188 118.233" stroke="#1C5870" stroke-width="4" stroke-linecap="round"/>
                 </g>
-                <path d="M165.719 86.8997C161.43 35.5663 124.219 -2.43367 76.7188 0.399663C29.2188 3.233 1.43047 50.8997 0.71875 100.9C0.00702813 150.9 29.2188 171.733 76.7188 147.233C124.219 122.733 170.007 138.233 165.719 86.8997Z" fill="#FAD564"/>
+                <path d="M165.719 86.8997C161.43 35.5663 124.219 -2.43367 76.7188 0.399663C29.2188 3.233 1.43047 50.8997 0.71875 100.9C0.00702813 150.9 29.2188 171.733 76.7188 147.233C124.219 122.733 170.007 138.233 165.719 86.8997Z" fill="url(#grad-monster-yellow)"/>
+                <ellipse cx="65" cy="95" rx="12" ry="8" fill="#ffc6ff" opacity="0.7"/>
+                <ellipse cx="135" cy="95" rx="12" ry="8" fill="#ffc6ff" opacity="0.7"/>
+                
+                <!-- Eyes -->
                 <ellipse cx="100.5" cy="59.5" rx="28.5" ry="29.5" fill="white"/>
                 <path d="M100 89C115.464 89 128 76.7025 128 61.5C128 46.2975 115.464 34 100 34C84.536 34 72 46.2975 72 61.5C72 76.7025 84.536 89 100 89Z" fill="#1C5870"/>
-                <ellipse cx="90" cy="57" rx="9" ry="10" fill="white"/>
-                <path d="M72 110C72 110 82.5 121 100 121C117.5 121 128 110 128 110" stroke="#1C5870" stroke-width="4" stroke-linecap="round"/>
-                <path d="M79.5 110L85 114.5L92.5 110L100 114.5L107.5 110L115 114.5L120.5 110" stroke="white" stroke-width="3" stroke-linecap="round"/>
+                <circle cx="90" cy="52" r="6" fill="white" opacity="0.8"/>
+                <circle cx="108" cy="65" r="3" fill="white" opacity="0.6"/>
+
+                <!-- Mouth -->
+                <path d="M75 112 C 80 125, 120 125, 125 112 Z" fill="#D0021B"/>
+                 <path d="M80 118 C 85 122, 115 122, 120 118 L 125 112 C 120 118, 80 118, 75 112 Z" fill="#ff7b7b"/>
+
+
                 <path d="M49 20C49 20 44 9.5 50 5C56 0.5 58.5 0.5 58.5 0.5" stroke="#1C5870" stroke-width="4" stroke-linecap="round"/>
                 <path d="M151 20C151 20 156 9.5 150 5C144 0.5 141.5 0.5 141.5 0.5" stroke="#1C5870" stroke-width="4" stroke-linecap="round"/>
             </svg>
@@ -475,7 +648,10 @@
                 <p id="first-score"></p>
                 <p id="high-score"></p>
             </div>
-            <button class="start-button" id="play-again-btn">เล่นอีกครั้ง</button>
+            <div class="game-over-buttons">
+                <button class="start-button" id="play-again-btn">เล่นอีกครั้ง</button>
+                <button class="start-button" id="home-btn-game-over">กลับหน้าหลัก</button>
+            </div>
         </div>
         
         <div id="feedback-container"></div>
@@ -568,7 +744,6 @@
             // --- DOM Elements & Game State ---
             const screens = { mainMenu: document.getElementById('main-menu-screen'), difficulty: document.getElementById('difficulty-screen'), customization: document.getElementById('customization-screen'), game: document.getElementById('game-screen'), gameOver: document.getElementById('game-over-screen') };
             const gameModeContainers = { drag_to_atom: document.getElementById('drag-to-atom-container'), multiple_choice: document.getElementById('multiple-choice-container') };
-            const elementSelectorGrid = document.getElementById('element-selector-grid');
             const elementCountDisplay = document.getElementById('element-count');
             const startGameBtn = document.getElementById('start-game-btn');
             const playAgainBtn = document.getElementById('play-again-btn');
@@ -581,6 +756,10 @@
             const feedbackContainer = document.getElementById('feedback-container');
             const categoryTooltip = document.getElementById('category-tooltip');
             const soundToggle = document.getElementById('sound-toggle');
+            const homeBtn = document.getElementById('home-btn');
+            const homeBtnGameOver = document.getElementById('home-btn-game-over');
+            const homeBtnDifficulty = document.getElementById('home-btn-difficulty');
+            const homeBtnCustomization = document.getElementById('home-btn-customization');
 
             let gameState = { mode: null, difficulty: null };
             let propertyQuestionsBank = [];
@@ -591,10 +770,15 @@
             // --- Audio ---
             let uiSynth, correctSynth, wrongSynth, bgMusic, isAudioInitialized = false;
 
-            const initAudio = async () => {
-                // This function is now called only once on the first user interaction
-                if (isAudioInitialized) return;
-                
+            async function initAudio() {
+                if (isAudioInitialized || typeof Tone === 'undefined') {
+                     if (typeof Tone === 'undefined' && !window.toneJsWarningIssued) {
+                        console.warn("Tone.js library not loaded. Audio will be disabled.");
+                        window.toneJsWarningIssued = true; 
+                     }
+                    return;
+                }
+
                 try {
                     await Tone.start();
                     
@@ -614,22 +798,46 @@
                     
                     Tone.Transport.bpm.value = 100;
                     isAudioInitialized = true;
-                    console.log("Audio Initialized Successfully!");
+                    console.log("Audio Initialized");
                 } catch(e) {
-                     console.error("Audio could not be initialized.", e);
+                     console.error("Audio initialization failed. Audio will be disabled.", e);
                      isAudioInitialized = false;
                 }
-            };
+            }
 
             // --- Navigation ---
             const showScreen = (screenName) => {
                 Object.values(screens).forEach(screen => screen.classList.remove('active'));
                 screens[screenName].classList.add('active');
             };
+            
+            const returnToMainMenu = async () => {
+                await initAudio();
+                if (isAudioInitialized && uiSynth) uiSynth.triggerAttackRelease("A4", "8n");
+
+                clearInterval(timerInterval);
+                clearTimeout(longPressTimer);
+                if(isAudioInitialized && typeof Tone !== 'undefined' && Tone.Transport.state === 'started') {
+                    bgMusic.stop();
+                    Tone.Transport.stop();
+                }
+                hideCategoryTooltip();
+                
+                // Clear confetti
+                screens.gameOver.querySelectorAll('.confetti').forEach(c => c.remove());
+
+                selectedElements.clear();
+                document.querySelectorAll('.element-choice.selected').forEach(el => el.classList.remove('selected'));
+                elementCountDisplay.textContent = `เลือกแล้ว 0 ธาตุ`;
+                startGameBtn.disabled = true;
+                
+                showScreen('mainMenu');
+            };
 
             document.querySelectorAll('.game-select-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    if (isAudioInitialized) uiSynth.triggerAttackRelease("C5", "8n");
+                btn.addEventListener('click', async () => {
+                    await initAudio();
+                    if (isAudioInitialized && uiSynth) uiSynth.triggerAttackRelease("C5", "8n");
                     gameState.mode = btn.dataset.mode;
                     if (gameState.mode === 'guess_property') {
                         showScreen('difficulty');
@@ -641,15 +849,15 @@
             });
 
             document.querySelectorAll('.difficulty-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    if (isAudioInitialized) uiSynth.triggerAttackRelease("C5", "8n");
+                btn.addEventListener('click', async () => {
+                    await initAudio();
+                    if (isAudioInitialized && uiSynth) uiSynth.triggerAttackRelease("C5", "8n");
                     gameState.difficulty = btn.dataset.difficulty;
                     propertyQuestionsBank = generatePropertyQuestions(gameState.difficulty);
                     startGame();
                 });
             });
             
-            // --- Question Generation for Property Game ---
             const generatePropertyQuestions = (difficulty) => {
                 const questions = [];
                 const allowedCategories = CATEGORY_DIFFICULTY[difficulty];
@@ -657,11 +865,10 @@
                 const availableTrivia = TRIVIA_QUESTIONS.filter(q => {
                     if (difficulty === 'easy') return q.difficulty === 'easy';
                     if (difficulty === 'medium') return q.difficulty === 'easy' || q.difficulty === 'medium';
-                    return true; // Hard includes all
+                    return true;
                 });
 
                 while (questions.length < 100) {
-                    // 40% chance of a trivia question
                     if (availableTrivia.length > 0 && Math.random() < 0.4) {
                         const trivia = availableTrivia[Math.floor(Math.random() * availableTrivia.length)];
                         const correctAnswer = ELEMENTS_DATA.find(el => el.symbol === trivia.correct_answer_symbol);
@@ -720,15 +927,22 @@
                 return questions;
             };
 
-
-            // --- Customization ---
             const populateCustomizationGrid = () => {
-                elementSelectorGrid.innerHTML = '';
+                const periodicTableGrid = document.getElementById('periodic-table-grid');
+                periodicTableGrid.innerHTML = '';
+
                 ELEMENTS_DATA.forEach(el => {
+                    const pos = ELEMENT_POSITIONS[el.atomicNumber];
+                    if (!pos) return;
+
                     const choice = document.createElement('div');
                     choice.className = 'element-choice';
                     choice.dataset.atomicNumber = el.atomicNumber;
-                    choice.innerHTML = `<div class="symbol">${el.symbol}</div><div class="number">${el.atomicNumber}</div>`;
+                    choice.innerHTML = `<div class="number">${el.atomicNumber}</div><div class="symbol">${el.symbol}</div>`;
+                    
+                    choice.style.gridColumnStart = pos.col;
+                    choice.style.gridRowStart = pos.row;
+
                     choice.addEventListener('click', (e) => {
                         const choiceDiv = e.currentTarget;
                         const atomicNum = parseInt(choiceDiv.dataset.atomicNumber);
@@ -742,13 +956,33 @@
                         elementCountDisplay.textContent = `เลือกแล้ว ${selectedElements.size} ธาตุ`;
                         startGameBtn.disabled = selectedElements.size < 5;
                     });
-                    elementSelectorGrid.appendChild(choice);
+                    periodicTableGrid.appendChild(choice);
                 });
+
+                const placeholderLa = document.createElement('div');
+                placeholderLa.className = 'pt-placeholder';
+                placeholderLa.style.gridColumnStart = 3;
+                placeholderLa.style.gridRowStart = 6;
+                placeholderLa.textContent = '57-71';
+                periodicTableGrid.appendChild(placeholderLa);
+
+                const placeholderAc = document.createElement('div');
+                placeholderAc.className = 'pt-placeholder';
+                placeholderAc.style.gridColumnStart = 3;
+                placeholderAc.style.gridRowStart = 7;
+                placeholderAc.textContent = '89-103';
+                periodicTableGrid.appendChild(placeholderAc);
             };
 
-            // --- Game Start & End ---
             const startGame = () => {
-                lives = 3; score = 0; timeLeft = 90;
+                lives = 3; 
+                score = 0;
+                
+                if (gameState.mode === 'drag_to_atom' || gameState.mode === 'guess_symbol') {
+                    timeLeft = selectedElements.size * 20;
+                } else { // guess_property
+                    timeLeft = 90;
+                }
                 
                 Object.values(gameModeContainers).forEach(c => c.style.display = 'none');
 
@@ -774,7 +1008,7 @@
                 }
                 
                 updateUI();
-                if (isAudioInitialized && !Tone.getDestination().mute) {
+                if (isAudioInitialized && typeof Tone !== 'undefined' && !Tone.getDestination().mute) {
                     Tone.Transport.start();
                     bgMusic.start(0);
                 }
@@ -793,10 +1027,29 @@
                 };
             };
 
+            function createConfetti() {
+                const confettiContainer = screens.gameOver;
+                const colors = ['#FAD564', '#D3DC7C', '#8EBD9D', '#ffadad', '#a0c4ff', '#bdb2ff'];
+                confettiContainer.querySelectorAll('.confetti').forEach(c => c.remove());
+
+                for (let i = 0; i < 100; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.width = `${Math.random() * 10 + 5}px`;
+                    confetti.style.height = confetti.style.width;
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.left = `${Math.random() * 100}%`;
+                    confetti.style.animationDuration = `${Math.random() * 3 + 4}s`;
+                    confetti.style.animationDelay = `${Math.random() * 2}s`;
+                    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    confettiContainer.appendChild(confetti);
+                }
+            }
+
             const endGame = () => {
                 clearInterval(timerInterval);
                 clearTimeout(longPressTimer);
-                if(isAudioInitialized && Tone.Transport.state === 'started') {
+                if(isAudioInitialized && typeof Tone !== 'undefined' && Tone.Transport.state === 'started') {
                     bgMusic.stop();
                     Tone.Transport.stop();
                 }
@@ -805,7 +1058,6 @@
 
                 const { first: firstScoreKey, high: highScoreKey } = getScoreKeys();
 
-                // Handle First Score
                 let firstScore = localStorage.getItem(firstScoreKey);
                 if (firstScore === null) {
                     firstScore = score;
@@ -813,7 +1065,6 @@
                 }
                 firstScoreDisplay.textContent = `คะแนนครั้งแรก: ${firstScore}`;
 
-                // Handle High Score
                 let highScore = localStorage.getItem(highScoreKey);
                 if (highScore === null || score > parseInt(highScore)) {
                     highScore = score;
@@ -821,11 +1072,10 @@
                 }
                 highScoreDisplay.textContent = `คะแนนสูงสุด: ${highScore}`;
 
-
                 showScreen('gameOver');
+                createConfetti();
             };
 
-            // --- UI & Timer ---
             const updateUI = () => {
                 const heartSVG = (isLost) => `
                     <svg class="life-icon-svg ${isLost ? 'lost' : ''}" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -844,7 +1094,6 @@
                 }, 1000);
             };
             
-            // --- GAME MODE 1: Click to Place Atom ---
             const setupAtomPlacementGame = () => {
                 const gameGrid = document.getElementById('game-grid');
                 gameGrid.innerHTML = '';
@@ -856,7 +1105,6 @@
                     'โลหะทรานซิชัน': 'transition-metal', 'โลหะ': 'metal', 'แลนทาไนด์': 'lanthanide', 'แอกทิไนด์': 'actinide'
                 };
 
-                // Placeholders
                 const placeholderLa = document.createElement('div');
                 placeholderLa.className = 'grid-slot placeholder-slot';
                 placeholderLa.style.setProperty('--row', 6); placeholderLa.style.setProperty('--col', 3);
@@ -941,7 +1189,7 @@
                 const targetAtomicNumber = parseInt(targetSlot.dataset.atomicNumber);
 
                 if (gameElementsQueue.length > 0 && targetAtomicNumber === gameElementsQueue[0].atomicNumber) {
-                    if (isAudioInitialized) correctSynth.triggerAttackRelease("G5", "16n");
+                    if (isAudioInitialized && correctSynth) correctSynth.triggerAttackRelease("G5", "16n");
                     score += 100;
                     const correctElement = gameElementsQueue[0];
                     targetSlot.classList.add('correct');
@@ -951,7 +1199,7 @@
                     gameElementsQueue.shift();
                     displayNextQuestion();
                 } else {
-                    if (isAudioInitialized) wrongSynth.triggerAttackRelease("C3", "8n");
+                    if (isAudioInitialized && wrongSynth) wrongSynth.triggerAttackRelease("C3", "8n");
                     lives--;
                     showFeedback('✖', false);
                     if (lives <= 0) endGame();
@@ -978,7 +1226,6 @@
                 categoryTooltip.style.display = 'none';
             };
 
-            // --- GAME MODE 2: Guess Symbol ---
             const displayNextSymbolQuestion = () => {
                 if (gameElementsQueue.length === 0) { endGame(); return; }
                 const correctElement = gameElementsQueue[0];
@@ -1001,7 +1248,6 @@
                 });
             };
             
-            // --- GAME MODE 3: Guess Property ---
             const displayNextPropertyQuestion = () => {
                 if (gameElementsQueue.length === 0) { endGame(); return; }
                 const currentQuestion = gameElementsQueue[0];
@@ -1020,16 +1266,15 @@
                 });
             };
 
-            // --- General Functions for Multiple Choice ---
             const handleChoice = (isCorrect, nextQuestionFunc) => {
                 if (isCorrect) {
-                    if (isAudioInitialized) correctSynth.triggerAttackRelease("G5", "16n");
+                    if (isAudioInitialized && correctSynth) correctSynth.triggerAttackRelease("G5", "16n");
                     score += 100;
                     showFeedback('✔', true);
                     gameElementsQueue.shift();
                     nextQuestionFunc();
                 } else {
-                    if (isAudioInitialized) wrongSynth.triggerAttackRelease("C3", "8n");
+                    if (isAudioInitialized && wrongSynth) wrongSynth.triggerAttackRelease("C3", "8n");
                     lives--;
                     showFeedback('✖', false);
                     if (lives <= 0) endGame();
@@ -1045,42 +1290,41 @@
                 setTimeout(() => feedback.remove(), 1000);
             };
 
-            // --- Initial Setup & Event Listeners ---
-            
-            // Set up a one-time listener to initialize audio on the first user interaction
-            document.body.addEventListener('click', initAudio, { once: true });
-            document.body.addEventListener('touchstart', initAudio, { once: true });
-
+            // --- Initial Setup ---
             populateCustomizationGrid();
             startGameBtn.addEventListener('click', startGame);
             
-            playAgainBtn.addEventListener('click', () => {
-                if (isAudioInitialized) uiSynth.triggerAttackRelease("C5", "8n");
-                selectedElements.clear();
-                document.querySelectorAll('.element-choice.selected').forEach(el => el.classList.remove('selected'));
-                elementCountDisplay.textContent = `เลือกแล้ว 0 ธาตุ`;
-                startGameBtn.disabled = true;
-                showScreen('mainMenu');
+            playAgainBtn.addEventListener('click', async () => {
+                await initAudio();
+                if (isAudioInitialized && uiSynth) uiSynth.triggerAttackRelease("C5", "8n");
+                
+                if (gameState.mode === 'guess_property') {
+                    showScreen('difficulty');
+                } else {
+                    showScreen('customization');
+                }
             });
 
+            homeBtn.addEventListener('click', returnToMainMenu);
+            homeBtnGameOver.addEventListener('click', returnToMainMenu);
+            homeBtnDifficulty.addEventListener('click', returnToMainMenu);
+            homeBtnCustomization.addEventListener('click', returnToMainMenu);
+
             soundToggle.addEventListener('click', () => {
-                if (!isAudioInitialized) return; // Don't do anything if audio isn't ready
-                
+                if (!isAudioInitialized || typeof Tone === 'undefined') return;
                 Tone.getDestination().mute = !Tone.getDestination().mute;
                 soundToggle.classList.toggle('muted', Tone.getDestination().mute);
 
-                // Start/Stop background music based on mute state if the game is active
-                if (screens.game.classList.contains('active')) {
-                    if (!Tone.getDestination().mute && Tone.Transport.state !== 'started') {
-                        Tone.Transport.start();
-                        bgMusic.start(0);
-                    } else if (Tone.getDestination().mute) {
-                        bgMusic.stop();
-                        Tone.Transport.stop();
-                    }
+                if (!Tone.getDestination().mute && typeof Tone !== 'undefined' && Tone.Transport.state !== 'started' && screens.game.classList.contains('active')) {
+                    Tone.Transport.start();
+                    bgMusic.start(0);
+                } else if (isAudioInitialized && typeof Tone !== 'undefined' && Tone.getDestination().mute) {
+                    bgMusic.stop();
+                    Tone.Transport.stop();
                 }
             });
         });
     </script>
 </body>
 </html>
+
